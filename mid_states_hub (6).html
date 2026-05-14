@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mid-States Hub — Tall Sales Co.</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css" />
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f4f0;color:#1a1a1a;font-size:14px}
+:root{--green:#1D9E75;--green-dark:#0F6E56;--green-light:#E1F5EE;--blue:#185FA5;--blue-light:#E6F1FB;--red:#A32D2D;--red-light:#FCEBEB;--amber:#BA7517;--amber-light:#FAEEDA;--border:#e8e6e0;--bg:#ffffff;--bg2:#f5f4f0;--bg3:#eeece7;--text:#1a1a1a;--text2:#6b6963;--text3:#9a9891;--radius:8px;--radius-lg:12px}
+.app{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:200px;min-width:200px;background:var(--bg);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:.75rem 0;overflow-y:auto}
+.logo{padding:0 1rem .875rem;border-bottom:1px solid var(--border);margin-bottom:.5rem}
+.logo-top{font-size:14px;font-weight:600;color:var(--text)}
+.logo-bot{font-size:11px;color:var(--text3);margin-top:2px}
+.nav-section{font-size:10px;color:var(--text3);padding:.75rem 1rem .2rem;letter-spacing:.06em;text-transform:uppercase;font-weight:500}
+.nav-item{display:flex;align-items:center;gap:8px;padding:8px 1rem;font-size:13px;color:var(--text2);cursor:pointer;border:none;background:none;width:100%;text-align:left;transition:all .15s;border-radius:0}
+.nav-item:hover{background:var(--bg2);color:var(--text)}
+.nav-item.active{background:var(--bg2);color:var(--text);font-weight:500;border-left:2.5px solid var(--green);padding-left:calc(1rem - 2.5px)}
+.nav-item i{font-size:16px;opacity:.8}
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column;min-width:0}
+.topbar{background:var(--bg);border-bottom:1px solid var(--border);padding:.75rem 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.page-title{font-size:15px;font-weight:600;color:var(--text)}
+.topbar-r{display:flex;gap:8px;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:var(--radius);font-size:12px;cursor:pointer;border:1px solid var(--border);background:var(--bg);color:var(--text);transition:all .15s;font-family:inherit}
+.btn:hover{background:var(--bg2)}
+.btn-g{background:var(--green);color:#fff;border-color:var(--green-dark);font-weight:500}
+.btn-g:hover{background:var(--green-dark)}
+.content{padding:1.5rem;flex:1}
+.page{display:none}
+.page.active{display:block}
+
+/* Metrics */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.5rem}
+.mc{background:var(--bg2);border-radius:var(--radius);padding:1rem 1.125rem}
+.mc-label{font-size:11px;color:var(--text2);margin-bottom:6px;font-weight:500;text-transform:uppercase;letter-spacing:.04em}
+.mc-val{font-size:24px;font-weight:600;color:var(--text)}
+.mc-sub{font-size:11px;color:var(--text3);margin-top:4px}
+
+/* Cards */
+.card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:1.5rem;overflow:hidden}
+.card-hdr{padding:.875rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;background:var(--bg)}
+.card-title{font-size:13px;font-weight:600;color:var(--text)}
+.filters{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+select,input[type=text],input[type=date]{font-size:12px;padding:5px 9px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:inherit}
+select:focus,input:focus{outline:2px solid var(--green);outline-offset:1px}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:8px 1.25rem;font-size:10px;color:var(--text2);font-weight:600;border-bottom:1px solid var(--border);background:var(--bg2);letter-spacing:.05em;text-transform:uppercase;white-space:nowrap}
+td{padding:10px 1.25rem;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg2)}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;white-space:nowrap}
+.b-p{background:#FAEEDA;color:#7a4510}
+.b-s{background:#E6F1FB;color:#0C447C}
+.b-r{background:#EAF3DE;color:#27500A}
+.b-i{background:#FCEBEB;color:#791F1F}
+.b-e{background:#EEEDFE;color:#3C3489}
+.b-m{background:#FBEAF0;color:#72243E}
+.b-n{background:#eeece7;color:#5a5851}
+.b-owner{background:#E1F5EE;color:#085041}
+.b-merch{background:#E6F1FB;color:#0C447C}
+.b-acct{background:#EEEDFE;color:#3C3489}
+.b-ap{background:#FAEEDA;color:#633806}
+
+/* Two column */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem}
+
+/* Chart wraps */
+.cw{position:relative;width:100%;height:210px;padding:.875rem 1.25rem .75rem}
+
+/* Member bars */
+.member-bar{display:flex;align-items:center;gap:12px;padding:8px 1.25rem;border-bottom:1px solid var(--border)}
+.member-bar:last-child{border-bottom:none}
+.mb-name{width:160px;font-weight:500;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
+.bar-track{flex:1;background:var(--bg2);border-radius:3px;height:7px;overflow:hidden}
+.bar-fill{height:7px;border-radius:3px;background:var(--green)}
+.mb-val{width:65px;text-align:right;font-size:11px;color:var(--text2)}
+.alert-row td{background:rgba(252,235,235,0.5)!important}
+
+/* Member grid */
+.mem-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:1.25rem}
+.mem-card{background:var(--bg2);border-radius:var(--radius);padding:.875rem 1rem;cursor:pointer;transition:all .15s;border:1px solid transparent}
+.mem-card:hover{border-color:var(--border);background:var(--bg)}
+.mem-card.selected{border-color:var(--green);background:var(--green-light)}
+.mem-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px}
+.mem-hq{font-size:11px;color:var(--text2);margin-bottom:7px}
+.mem-stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.mem-stat{font-size:11px;color:var(--text2)}
+.mem-stat strong{color:var(--text)}
+.state-pills{display:flex;flex-wrap:wrap;gap:3px}
+.state-pill{font-size:10px;background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:1px 6px;color:var(--text2);font-weight:500}
+
+/* Detail panel */
+.detail-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.15);z-index:99}
+.detail-overlay.open{display:block}
+.detail-panel{position:fixed;top:0;right:-400px;width:400px;height:100vh;background:var(--bg);border-left:1px solid var(--border);z-index:100;overflow-y:auto;display:flex;flex-direction:column;transition:right .25s ease}
+.detail-panel.open{right:0}
+.dp-header{padding:1.125rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;background:var(--bg2)}
+.dp-name{font-size:16px;font-weight:600;color:var(--text)}
+.dp-legal{font-size:12px;color:var(--text2);margin-top:3px}
+.dp-close{background:none;border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--text2);font-size:18px;padding:2px 8px;line-height:1;transition:all .15s}
+.dp-close:hover{background:var(--bg2)}
+.dp-section{padding:1rem 1.25rem;border-bottom:1px solid var(--border)}
+.dp-section-title{font-size:10px;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;font-weight:600;margin-bottom:.625rem}
+.dp-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.dp-stat{background:var(--bg2);border-radius:var(--radius);padding:.5rem .75rem}
+.dp-stat-label{font-size:10px;color:var(--text3)}
+.dp-stat-val{font-size:18px;font-weight:600;color:var(--text)}
+.contact-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:.625rem}
+.contact-row:last-child{margin-bottom:0}
+.contact-avatar{width:32px;height:32px;min-width:32px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--text2);border:1px solid var(--border)}
+.contact-info{flex:1;min-width:0}
+.contact-name{font-size:12px;font-weight:600;color:var(--text)}
+.contact-role{font-size:11px;color:var(--text3)}
+.contact-email{font-size:11px;color:var(--blue);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Form */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;padding:1.25rem}
+.fg{display:flex;flex-direction:column;gap:4px}
+.fg label{font-size:11px;color:var(--text2);font-weight:500}
+.fg input,.fg select,.fg textarea{font-size:13px;padding:7px 10px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:inherit}
+.fg textarea{height:64px;resize:vertical}
+.form-actions{padding:0 1.25rem 1.25rem;display:flex;gap:8px}
+
+/* Drop zone */
+#dropZone:hover,.dz-over{border-color:var(--green)!important;background:var(--green-light)!important}
+@keyframes spin{to{transform:rotate(360deg)}}
+.conf-badge{font-size:10px;font-weight:600;padding:1px 5px;border-radius:8px;background:#E1F5EE;color:#085041;display:none}
+.conf-badge.show{display:inline}
+
+/* Vendor styles */
+.vend-filters{padding:.75rem 1.25rem;border-bottom:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:var(--bg2)}
+.vend-table-wrap{overflow-x:auto}
+.compliance-dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
+.dot-ok{background:#1D9E75}
+.dot-warn{background:#E89B1A}
+.dot-bad{background:#C93535}
+.vend-detail-panel{display:none;position:fixed;top:0;right:-440px;width:440px;height:100vh;background:var(--bg);border-left:1px solid var(--border);z-index:100;overflow-y:auto;transition:right .25s ease}
+.vend-detail-panel.open{right:0;display:flex;flex-direction:column}
+.compliance-bar{display:flex;align-items:center;gap:8px;padding:.5rem 0}
+.cbar-label{font-size:12px;color:var(--text2);width:90px;flex-shrink:0}
+.cbar-status{font-size:12px;font-weight:600}
+.cbar-date{font-size:11px;color:var(--text3);margin-left:auto}
+.cbar-days{font-size:11px;padding:1px 6px;border-radius:10px;font-weight:500}
+.days-ok{background:#E1F5EE;color:#085041}
+.days-warn{background:#FAEEDA;color:#7a4510}
+.days-bad{background:#FCEBEB;color:#791F1F}
+.archive-badge{background:#eeece7;color:#5a5851;font-size:10px;padding:1px 7px;border-radius:10px;font-weight:500}
+.notes-chip{background:#EEF2FF;color:#3730a3;font-size:10px;padding:1px 7px;border-radius:10px}
+
+/* Trend legend */
+.chart-legend{display:flex;flex-wrap:wrap;gap:12px;padding:.5rem 1.25rem .75rem;font-size:11px;color:var(--text2)}
+.leg-dot{width:9px;height:9px;border-radius:2px;display:inline-block;margin-right:4px;vertical-align:middle}
+
+/* Mono */
+.mono{font-family:ui-monospace,'SF Mono',monospace}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="logo">
+    <div class="logo-top">Mid-States Hub</div>
+    <div class="logo-bot">Tall Sales Co. — Rep Portal</div>
+  </div>
+  <div class="nav-section">Overview</div>
+  <button class="nav-item active" onclick="nav('dashboard',this)"><i class="ti ti-layout-dashboard"></i> Dashboard</button>
+  <button class="nav-item" onclick="nav('pos',this)"><i class="ti ti-file-invoice"></i> Purchase Orders</button>
+  <button class="nav-item" onclick="nav('add',this)"><i class="ti ti-plus"></i> Log New PO</button>
+  <div class="nav-section">Intelligence</div>
+  <button class="nav-item" onclick="nav('members',this)"><i class="ti ti-building-store"></i> Members (29)</button>
+  <button class="nav-item" onclick="nav('contacts',this)"><i class="ti ti-address-book"></i> Contacts</button>
+  <button class="nav-item" onclick="nav('vendors',this)"><i class="ti ti-truck"></i> Vendors</button>
+  <button class="nav-item" onclick="nav('trends',this)"><i class="ti ti-chart-line"></i> Trends</button>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+<div class="topbar">
+  <div class="page-title" id="pageTitle">Dashboard</div>
+  <div class="topbar-r">
+    <select id="periodSel" onchange="rebuildDash()">
+      <option>Last 90 Days</option><option>YTD 2025</option><option>Q1 2025</option><option>Q4 2024</option>
+    </select>
+    <button class="btn btn-g" onclick="nav('add',document.querySelectorAll('.nav-item')[2])"><i class="ti ti-plus"></i> Log PO</button>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- DASHBOARD -->
+<div class="page active" id="page-dashboard">
+  <div class="metrics">
+    <div class="mc"><div class="mc-label">Open POs</div><div class="mc-val" id="mOpenPOs">0</div><div class="mc-sub" id="mOpenSub">No POs logged yet</div></div>
+    <div class="mc"><div class="mc-label">YTD PO Value</div><div class="mc-val" id="mYTDVal">$0</div><div class="mc-sub" id="mYTDSub">Log your first PO to begin</div></div>
+    <div class="mc"><div class="mc-label">Network</div><div class="mc-val">697</div><div class="mc-sub">stores across 29 members</div></div>
+    <div class="mc"><div class="mc-label">Flagged / Issues</div><div class="mc-val" id="mFlagged" style="color:var(--red)">0</div><div class="mc-sub" id="mFlaggedSub">No issues flagged</div></div>
+  </div>
+  <div class="two-col">
+    <div class="card"><div class="card-hdr"><span class="card-title">Monthly PO value</span></div><div class="cw"><canvas id="cVol" role="img" aria-label="Monthly PO volume bar chart">Monthly PO volume data.</canvas></div></div>
+    <div class="card"><div class="card-hdr"><span class="card-title">Category mix</span></div><div class="cw"><canvas id="cCat" role="img" aria-label="Category breakdown donut chart">Category breakdown.</canvas></div></div>
+  </div>
+  <div class="card">
+    <div class="card-hdr"><span class="card-title">Members by store count</span></div>
+    <div id="memberBars"></div>
+  </div>
+  <div class="card">
+    <div class="card-hdr"><span class="card-title">Recent activity</span></div>
+    <table><thead><tr><th>PO #</th><th>Member</th><th>Vendor</th><th>Value</th><th>Source</th><th>Status</th></tr></thead>
+    <tbody id="recentTbody"></tbody></table>
+  </div>
+</div>
+
+<!-- POs -->
+<div class="page" id="page-pos">
+  <div class="card">
+    <div class="card-hdr">
+      <span class="card-title">All purchase orders</span>
+      <div class="filters">
+        <select id="fMember" onchange="renderPOs()"><option value="">All Members</option></select>
+        <select id="fStatus" onchange="renderPOs()"><option value="">All Statuses</option><option>Pending</option><option>Shipped</option><option>Received</option><option>Issue</option></select>
+        <select id="fSource" onchange="renderPOs()"><option value="">All Sources</option><option>EDI</option><option>Email</option><option>Manual</option></select>
+        <input type="text" id="fSearch" placeholder="Search…" oninput="renderPOs()" style="width:120px" />
+      </div>
+    </div>
+    <table><thead><tr><th>PO #</th><th>Date</th><th>Member</th><th>Vendor</th><th>Category</th><th>Value</th><th>Source</th><th>Status</th><th>Notes</th></tr></thead>
+    <tbody id="poTbody"></tbody></table>
+  </div>
+</div>
+
+<!-- LOG PO -->
+<div class="page" id="page-add">
+
+  <!-- Drop Zone -->
+  <div class="card" id="dropCard">
+    <div class="card-hdr">
+      <span class="card-title">Smart PO import — AI auto-fill</span>
+      <span style="font-size:11px;color:var(--text2)">Save the PDF attachment from your email and drop it here</span>
+    </div>
+
+    <!-- Workflow tip banner -->
+    <div style="margin:1rem 1.25rem 0;padding:.625rem .875rem;background:#EEF2FF;border-radius:var(--radius);display:flex;align-items:flex-start;gap:10px">
+      <span style="font-size:16px;line-height:1.4">💡</span>
+      <div style="font-size:12px;color:#3730a3;line-height:1.5">
+        <strong>Workflow tip:</strong> When a PO arrives in your email, save or download the PDF attachment, then drop it here. Claude will read the entire document and fill in all fields automatically — member, vendor, PO number, dollar amount, ship date, and more.
+      </div>
+    </div>
+
+    <div id="dropZone"
+      ondragover="event.preventDefault();this.classList.add('dz-over')"
+      ondragleave="this.classList.remove('dz-over')"
+      ondrop="handleDrop(event)"
+      onclick="document.getElementById('fileInput').click()"
+      style="margin:1rem 1.25rem 1.25rem;border:2px dashed var(--border);border-radius:var(--radius-lg);padding:2.75rem 1.5rem;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg2)">
+      <div style="font-size:40px;margin-bottom:.875rem;line-height:1">📋</div>
+      <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:.375rem">Drop your PO attachment here</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:1.25rem">or click to browse for the file</div>
+      <div style="display:inline-flex;align-items:center;gap:6px;background:var(--green);color:#fff;padding:7px 16px;border-radius:var(--radius);font-size:12px;font-weight:500">
+        <span>📄</span> PDF — primary format
+      </div>
+      <div style="margin-top:.875rem;display:flex;gap:6px;justify-content:center">
+        <span style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:3px 10px;font-size:11px;color:var(--text2)">JPG / PNG scans</span>
+        <span style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:3px 10px;font-size:11px;color:var(--text2)">Excel</span>
+        <span style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:3px 10px;font-size:11px;color:var(--text2)">CSV</span>
+      </div>
+      <div style="margin-top:1rem;font-size:11px;color:var(--text3)">Works with EDI-generated PDFs, scanned fax copies, and member-issued PO documents</div>
+    </div>
+    <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png,.xlsx,.xls,.csv" style="display:none" onchange="handleFileSelect(this.files[0])" />
+
+    <!-- AI Processing State -->
+    <div id="aiProcessing" style="display:none;padding:2rem 1.25rem;text-align:center">
+      <div style="display:inline-block;width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:1rem"></div>
+      <div style="font-size:14px;font-weight:600;color:var(--text)" id="aiStatusText">Reading your PDF…</div>
+      <div style="font-size:12px;color:var(--text2);margin-top:.375rem" id="aiStatusSub">Claude is scanning the document and matching against your member & vendor list</div>
+    </div>
+
+    <!-- AI Result Banner -->
+    <div id="aiResult" style="display:none;padding:.75rem 1.25rem 1rem">
+      <div style="display:flex;align-items:center;gap:10px;padding:.75rem 1rem;background:#E1F5EE;border-radius:var(--radius);margin-bottom:1rem;border:1px solid #b6e8d4">
+        <div style="width:28px;height:28px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">✓</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:600;color:#085041">PO extracted successfully</div>
+          <div style="font-size:11px;color:#0F6E56;margin-top:1px" id="aiConfidenceNote">Review the fields below and save when ready</div>
+        </div>
+        <button onclick="resetDropZone()" style="background:none;border:1px solid #b6e8d4;border-radius:6px;cursor:pointer;font-size:11px;color:#0F6E56;padding:4px 10px;white-space:nowrap;flex-shrink:0">↩ New file</button>
+      </div>
+      <details style="margin-bottom:.5rem">
+        <summary style="font-size:11px;color:var(--text2);cursor:pointer;user-select:none;list-style:none;display:flex;align-items:center;gap:4px">
+          <span>▶</span> Show raw text extracted from PDF
+        </summary>
+        <pre id="aiRawText" style="font-size:10px;color:var(--text2);background:var(--bg2);padding:.75rem;border-radius:6px;margin-top:.5rem;white-space:pre-wrap;max-height:140px;overflow-y:auto;line-height:1.5"></pre>
+      </details>
+    </div>
+  </div>
+
+  <!-- PO Form (always visible, pre-filled by AI or manual) -->
+  <div class="card">
+    <div class="card-hdr">
+      <span class="card-title">Purchase order details</span>
+      <span id="formFillBadge" style="display:none;font-size:11px;background:#E1F5EE;color:#085041;padding:2px 8px;border-radius:10px;font-weight:500">✦ AI filled</span>
+    </div>
+    <div class="form-grid">
+      <div class="fg">
+        <label>PO Number <span id="fPoConf" class="conf-badge"></span></label>
+        <input id="fPo" placeholder="e.g. MS-25-0220" />
+      </div>
+      <div class="fg">
+        <label>Date received <span id="fDateConf" class="conf-badge"></span></label>
+        <input type="date" id="fDate" />
+      </div>
+      <div class="fg">
+        <label>Member <span id="fMemConf" class="conf-badge"></span></label>
+        <select id="fMemSel"><option value="">Select member…</option></select>
+      </div>
+      <div class="fg">
+        <label>Buyer contact <span id="fBuyerConf" class="conf-badge"></span></label>
+        <input id="fBuyer" placeholder="Name or email" />
+      </div>
+      <div class="fg">
+        <label>Vendor <span id="fVendConf" class="conf-badge"></span></label>
+        <select id="fVendSel"><option value="">Select vendor…</option></select>
+      </div>
+      <div class="fg">
+        <label>Category <span id="fCatConf" class="conf-badge"></span></label>
+        <select id="fCatSel"><option>Lawn & Garden</option><option>Automotive</option><option>Hardware</option><option>Sporting Goods</option><option>Apparel</option><option>Tools</option><option>Other</option></select>
+      </div>
+      <div class="fg">
+        <label>PO Value ($) <span id="fValConf" class="conf-badge"></span></label>
+        <input id="fVal" placeholder="0.00" />
+      </div>
+      <div class="fg">
+        <label>Source</label>
+        <select id="fSrc"><option>EDI</option><option>Email</option><option>Manual</option></select>
+      </div>
+      <div class="fg">
+        <label>Status</label>
+        <select id="fStat"><option>Pending</option><option>Shipped</option><option>Received</option><option>Issue</option></select>
+      </div>
+      <div class="fg">
+        <label>Expected ship date <span id="fShipConf" class="conf-badge"></span></label>
+        <input type="date" id="fShip" />
+      </div>
+      <div class="fg" style="grid-column:1/-1">
+        <label>Notes <span id="fNotesConf" class="conf-badge"></span></label>
+        <textarea id="fNotes" placeholder="e.g. Member requested earlier delivery. Vendor confirmed 5/15 ship."></textarea>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-g" onclick="savePO()"><i class="ti ti-check"></i> Save PO</button>
+      <button class="btn" onclick="clearForm()">Clear</button>
+    </div>
+    <div id="saveMsg" style="padding:0 1.25rem 1rem;font-size:12px;color:var(--green-dark);display:none"><i class="ti ti-check-circle"></i> PO saved successfully.</div>
+  </div>
+</div>
+
+<!-- MEMBERS -->
+<div class="page" id="page-members">
+  <div class="card">
+    <div class="card-hdr">
+      <span class="card-title">All 29 members — 697 stores · 35 DCs — click any card for full profile</span>
+      <div class="filters">
+        <select id="mSort" onchange="renderMembers()"><option value="stores">Sort: Store count</option><option value="alpha">Sort: A–Z</option><option value="state">Sort: HQ state</option></select>
+        <input type="text" id="mSearch" placeholder="Filter members…" oninput="renderMembers()" style="width:130px" />
+      </div>
+    </div>
+    <div class="mem-grid" id="memberGrid"></div>
+  </div>
+</div>
+
+<!-- CONTACTS -->
+<div class="page" id="page-contacts">
+  <div class="card">
+    <div class="card-hdr">
+      <span class="card-title">Key contacts directory — all 29 members</span>
+      <div class="filters">
+        <select id="cRole" onchange="renderContacts()"><option value="">All roles</option><option>Owner</option><option>Merchandising</option><option>Accounting</option><option>AP</option></select>
+        <input type="text" id="cSearch" placeholder="Search name or member…" oninput="renderContacts()" style="width:150px" />
+      </div>
+    </div>
+    <table><thead><tr><th>Name</th><th>Role</th><th>Member</th><th>HQ</th><th>Email</th><th>Phone</th></tr></thead>
+    <tbody id="contactTbody"></tbody></table>
+  </div>
+</div>
+
+<!-- VENDORS -->
+<div class="page" id="page-vendors">
+  <div class="metrics" id="vendMetrics" style="margin-bottom:1.25rem"></div>
+  <div class="card">
+    <div class="card-hdr">
+      <span class="card-title">Vendor compliance tracker — 49 vendors</span>
+      <div class="filters">
+        <select id="vfStatus" onchange="renderVendors()"><option value="">All Statuses</option><option>Active</option><option>Warehouse</option></select>
+        <select id="vfPL" onchange="renderVendors()"><option value="">All Price Lists</option><option>Current</option><option>Expiring Soon</option><option>Expired</option></select>
+        <select id="vfCOI" onchange="renderVendors()"><option value="">All COI</option><option>Current</option><option>Expiring Soon</option><option>Expired</option></select>
+        <select id="vfMgr" onchange="renderVendors()"><option value="">All Managers</option></select>
+        <input type="text" id="vfSearch" placeholder="Search vendor…" oninput="renderVendors()" style="width:130px" />
+      </div>
+    </div>
+    <div class="vend-table-wrap">
+      <table id="vendTable">
+        <thead><tr>
+          <th></th>
+          <th>Supplier #</th>
+          <th>Vendor name</th>
+          <th>Contact</th>
+          <th>Category manager</th>
+          <th>Status</th>
+          <th>Price list</th>
+          <th>PL expires</th>
+          <th>COI</th>
+          <th>COI expires</th>
+          <th>Territory</th>
+          <th>Notes</th>
+        </tr></thead>
+        <tbody id="vendTbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- VENDOR DETAIL PANEL -->
+<div class="detail-overlay" id="vendOverlay" onclick="closeVendDetail()"></div>
+<div class="vend-detail-panel" id="vendDetailPanel">
+  <div class="dp-header">
+    <div><div class="dp-name" id="vdpName"></div><div class="dp-legal" id="vdpNum"></div></div>
+    <button class="dp-close" onclick="closeVendDetail()">×</button>
+  </div>
+  <div class="dp-section">
+    <div class="dp-section-title">Compliance status</div>
+    <div id="vdpCompliance"></div>
+  </div>
+  <div class="dp-section">
+    <div class="dp-section-title">Vendor details</div>
+    <div id="vdpDetails"></div>
+  </div>
+  <div class="dp-section">
+    <div class="dp-section-title">Territory</div>
+    <div id="vdpTerritory" style="font-size:12px;color:var(--text2);line-height:1.6"></div>
+  </div>
+</div>
+
+<!-- TRENDS -->
+<div class="page" id="page-trends">
+  <div class="two-col">
+    <div class="card"><div class="card-hdr"><span class="card-title">YoY value comparison</span></div><div class="cw" style="height:230px"><canvas id="cYoY" role="img" aria-label="Year over year comparison">YoY data.</canvas></div></div>
+    <div class="card"><div class="card-hdr"><span class="card-title">PO source breakdown</span></div><div class="cw" style="height:230px"><canvas id="cSrc" role="img" aria-label="Source breakdown">Source data.</canvas></div></div>
+  </div>
+  <div class="card">
+    <div class="card-hdr"><span class="card-title">Seasonal category index</span></div>
+    <div class="chart-legend">
+      <span><span class="leg-dot" style="background:#1D9E75"></span>Lawn & Garden</span>
+      <span><span class="leg-dot" style="background:#378ADD"></span>Automotive</span>
+      <span><span class="leg-dot" style="background:#EF9F27"></span>Sporting Goods</span>
+      <span><span class="leg-dot" style="background:#D4537E"></span>Apparel</span>
+    </div>
+    <div class="cw" style="height:250px;padding-top:0"><canvas id="cSeas" role="img" aria-label="Seasonal category trends">Seasonal data.</canvas></div>
+  </div>
+</div>
+
+</div><!-- end content -->
+</div><!-- end main -->
+</div><!-- end app -->
+
+<!-- MEMBER DETAIL PANEL -->
+<div class="detail-overlay" id="detailOverlay" onclick="closeDetail()"></div>
+<div class="detail-panel" id="detailPanel">
+  <div class="dp-header">
+    <div><div class="dp-name" id="dpName"></div><div class="dp-legal" id="dpLegal"></div></div>
+    <button class="dp-close" onclick="closeDetail()" aria-label="Close panel">×</button>
+  </div>
+  <div class="dp-section">
+    <div class="dp-section-title">At a glance</div>
+    <div class="dp-stats" id="dpStats"></div>
+  </div>
+  <div class="dp-section">
+    <div class="dp-section-title">Headquarters</div>
+    <div style="font-size:13px;font-weight:500;color:var(--text)" id="dpHQ"></div>
+    <div style="font-size:12px;color:var(--text2);margin-top:3px" id="dpPhone"></div>
+    <div style="font-size:12px;color:var(--blue);margin-top:3px" id="dpWeb"></div>
+  </div>
+  <div class="dp-section">
+    <div class="dp-section-title">States served</div>
+    <div class="state-pills" id="dpStates"></div>
+  </div>
+  <div class="dp-section">
+    <div class="dp-section-title">Key contacts</div>
+    <div id="dpContacts"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const MEMBERS=[
+{name:"Atwood Distributing",legalName:"Atwood Distributing LP",hqCity:"Enid",hqState:"OK",hqAddress:"500 South Garland Road",hqZip:"73703",phone:"580-233-3702",website:"www.atwoods.com",ownerName:"Brian Atwood",ownerEmail:"batwood@atwoods.com",merchName:"Wes Johnson",merchEmail:"wjohnson@atwoods.com",acctName:"Matthew Mueller",acctEmail:"MMueller@atwoods.com",apName:"Sherry Howard Puckett",apEmail:"spuckett@atwoods.com",storeCount:83,dcCount:2,statesServed:["AR","KS","MO","OK","TX"]},
+{name:"Big Blue",legalName:"Big Blue of Clinton, Inc.",hqCity:"Clinton",hqState:"NC",hqAddress:"149 Martin Luther King Jr Blvd.",hqZip:"28328",phone:"910-592-6816",website:"www.bigbluestore.com",ownerName:"Tim Clifton",ownerEmail:"tim@intrstar.net",merchName:"Russell Hartley",merchEmail:"russell.bigblue@gmail.com",acctName:"Jesse Turner",acctEmail:"JTurner@BigBlueStores.com",apName:"Kay Turlington",apEmail:"bigblueapassistant@hotmail.com",storeCount:3,dcCount:0,statesServed:["NC"]},
+{name:"Big R Holdings",legalName:"Big R Holdings",hqCity:"Pueblo",hqState:"CO",hqAddress:"100 Big R Street",hqZip:"81001",phone:"719-948-3030",website:"www.bigronline.com",ownerName:"Dave Blain",ownerEmail:"daveblain@mybigr.com",merchName:"Tyler Blain",merchEmail:"tylerblain@mybigr.com",acctName:"Adam Carroll",acctEmail:"adamcarroll@mybigr.com",apName:"Shawna Ausmus",apEmail:"shawnaausmus@mybigr.com",storeCount:37,dcCount:0,statesServed:["CO","KS","NM","OK","TX"]},
+{name:"Bomgaars Supply",legalName:"Bomgaars Supply, Inc.",hqCity:"Sioux City",hqState:"IA",hqAddress:"1805 Zenith Dr",hqZip:"51103",phone:"712-226-5000",website:"www.bomgaars.com",ownerName:"Roger Bomgaars",ownerEmail:"rbomgaars@bomgaars.com",merchName:"Doug Savage",merchEmail:"dsavage@bomgaars.com",acctName:"Lindsey O'Neal",acctEmail:"loneal@bomgaars.com",apName:"Stephanie Gorter",apEmail:"sgorter@bomgaars.com",storeCount:187,dcCount:4,statesServed:["AR","CO","IA","ID","IN","KS","KY","MN","MO","NE","OH","OK","SD","TX","WY"]},
+{name:"Buchheit Enterprises",legalName:"Buchheit Enterprises, Inc",hqCity:"Perryville",hqState:"MO",hqAddress:"33 PCR 540",hqZip:"63775",phone:"573-547-1010",website:"",ownerName:"Tim Buchheit",ownerEmail:"tim.buchheit@buchheits.com",merchName:"Nathan Schilling",merchEmail:"nathan.schilling@buchheits.com",acctName:"Eric Hasty",acctEmail:"eric.hasty@buchheits.com",apName:"Robin Pohlman",apEmail:"robin.pohlman@buchheits.com",storeCount:20,dcCount:1,statesServed:["AR","IL","KY","MO","NE"]},
+{name:"Country Supplier LLC",legalName:"Country Supplier LLC",hqCity:"Ammon",hqState:"ID",hqAddress:"976 S. Curlew Drive",hqZip:"83406",phone:"208-523-3359",website:"",ownerName:"Thomas Yearsley",ownerEmail:"tom.yearsley@countrysupplier.com",merchName:"Kathryn Heg",merchEmail:"kathryn.heg@countrysupplier.com",acctName:"Derik Nielsen",acctEmail:"derik.nielsen@countrysupplier.com",apName:"Jessica Russell",apEmail:"jessica.russell@countrysupplier.com",storeCount:55,dcCount:1,statesServed:["AZ","ID","NV","OR","UT","WA"]},
+{name:"D & B Supply Co.",legalName:"D & B Supply Co.",hqCity:"Caldwell",hqState:"ID",hqAddress:"3907 Muller Drive",hqZip:"83605",phone:"208-459-7446",website:"www.dbsupply.com",ownerName:"Mark Schmitt",ownerEmail:"mschmitt@dbsupply.com",merchName:"Catherine Fisk",merchEmail:"cfisk@dbsupply.com",acctName:"Terry Ireland",acctEmail:"tireland@dbsupply.com",apName:"Tanna Pollard",apEmail:"tpollard@dbsupply.com",storeCount:17,dcCount:1,statesServed:["ID","OR"]},
+{name:"Dan's Boots & Saddles",legalName:"Dan's Boots & Saddles",hqCity:"Albuquerque",hqState:"NM",hqAddress:"6903 4th St NW",hqZip:"87107",phone:"505-345-2220",website:"www.dansboots.com",ownerName:"Larry Christensen",ownerEmail:"larry@dansboots.com",merchName:"Larry Christensen",merchEmail:"larry@dansboots.com",acctName:"Larry Christensen",acctEmail:"larry@dansboots.com",apName:"Karen Truelock",apEmail:"karen@dansboots.com",storeCount:1,dcCount:0,statesServed:["NM"]},
+{name:"Falder's, Inc.",legalName:"Falder's, Inc.",hqCity:"Mayfield",hqState:"KY",hqAddress:"1428 Cuba Road",hqZip:"42066",phone:"270-247-7790",website:"",ownerName:"Chris Falder",ownerEmail:"chris@faldersinc.com",merchName:"Andrew Falder",merchEmail:"andrew@faldersinc.com",acctName:"Aaron Falder",acctEmail:"aaron@faldersinc.com",apName:"Chris Falder",apEmail:"chris@faldersinc.com",storeCount:2,dcCount:0,statesServed:["KY"]},
+{name:"Family Center",legalName:"Family Center of Harrisonville, Inc.",hqCity:"Harrisonville",hqState:"MO",hqAddress:"2601 Cantrell Rd",hqZip:"64701",phone:"816-380-7282",website:"familycenter.us",ownerName:"Keith Mills",ownerEmail:"kmills@familycenter.us",merchName:"Keith Mills",merchEmail:"kmills@familycenter.us",acctName:"Jen Box",acctEmail:"jbox@familycenter.us",apName:"Keith Mills",apEmail:"kmills@familycenter.us",storeCount:7,dcCount:1,statesServed:["KS","MO"]},
+{name:"Farm King Supply",legalName:"Farm King Supply, Inc.",hqCity:"Macomb",hqState:"IL",hqAddress:"730 N Bower Road",hqZip:"61455",phone:"309-837-9929",website:"www.farmking.com",ownerName:"Rick Severs",ownerEmail:"rick.severs@farmking.com",merchName:"Rick Severs",merchEmail:"rick.severs@farmking.com",acctName:"Brad Severs",acctEmail:"brad.severs@farmking.com",apName:"Julie Bitner",apEmail:"acctpay@farmking.com",storeCount:6,dcCount:1,statesServed:["IA","IL"]},
+{name:"Fleet & Farm Supply",legalName:"Fleet & Farm Supply, Inc.",hqCity:"Fairmont",hqState:"MN",hqAddress:"1300 North State Street",hqZip:"56031",phone:"507-238-1823",website:"",ownerName:"Bonnie Vetter",ownerEmail:"bonnievetter@frontiernet.net",merchName:"Roger Peterson",merchEmail:"rogerepeterson@frontiernet.net",acctName:"Bonnie Vetter",acctEmail:"bonnievetter@frontiernet.net",apName:"",apEmail:"",storeCount:2,dcCount:0,statesServed:["MN"]},
+{name:"Gebo Distributing",legalName:"Gebo Distributing Company, Inc.",hqCity:"Plainview",hqState:"TX",hqAddress:"506 Ennis Street",hqZip:"79072",phone:"806-293-4212",website:"www.gebos.com",ownerName:"Mike McCarthy",ownerEmail:"mikemccarthy@gebos.net",merchName:"",merchEmail:"",acctName:"Vance Grant",acctEmail:"vancegrant@gebos.net",apName:"AP Gebos",apEmail:"ap_gebos@gebos.net",storeCount:22,dcCount:1,statesServed:["NM","TX"]},
+{name:"JAX Mercantile",legalName:"JAX Mercantile Company, Inc.",hqCity:"Laporte",hqState:"CO",hqAddress:"4629 North Overland Trail",hqZip:"80535",phone:"970-488-3250",website:"www.jaxgoods.com",ownerName:"Jim Quinlan",ownerEmail:"Jim.Quinlan@jax-gear.com",merchName:"Shelby Quinlan",merchEmail:"shelby.quinlan@jax-gear.com",acctName:"Becky Allen",acctEmail:"Becky.Allen@jax-gear.com",apName:"Eric Stahl",apEmail:"Eric.Stahl@jax-gear.com",storeCount:8,dcCount:1,statesServed:["CO","IA"]},
+{name:"L & M Supply",legalName:"L & M Supply Inc",hqCity:"Grand Rapids",hqState:"MN",hqAddress:"1200 E Hwy 169",hqZip:"55744",phone:"218-326-9783",website:"www.landmsupply.com",ownerName:"Del Matteson",ownerEmail:"del@landmsupply.com",merchName:"Shawn Matteson",merchEmail:"shawn.matteson@lmsupply.com",acctName:"Erik Andersen",acctEmail:"erik@landmsupply.com",apName:"Jessica Wahlquist",apEmail:"ap@landmsupply.com",storeCount:13,dcCount:2,statesServed:["MI","MN","WI"]},
+{name:"Linton's Big R",legalName:"Linton's Big R Inc.",hqCity:"Powell",hqState:"WY",hqAddress:"PO Box 628",hqZip:"82435",phone:"307-754-9522",website:"www.lintonsbigr.com",ownerName:"Jim Linton",ownerEmail:"jimlinton307@gmail.com",merchName:"Jim Linton",merchEmail:"jimlinton307@gmail.com",acctName:"Jim Linton",acctEmail:"jimlinton307@gmail.com",apName:"Diane Banning",apEmail:"dianebigr307@gmail.com",storeCount:1,dcCount:0,statesServed:["WY"]},
+{name:"Murdoch's Ranch & Home",legalName:"Murdoch's Ranch & Home Supply",hqCity:"Bozeman",hqState:"MT",hqAddress:"2311 N. 7th Ave.",hqZip:"59715",phone:"406-587-5846",website:"www.murdochs.com",ownerName:"Rick Ungersma",ownerEmail:"rungersma@murdochs.com",merchName:"Brad Nab",merchEmail:"bnab@murdochs.com",acctName:"Scott Kenney",acctEmail:"scott.kenney@murdochs.com",apName:"Nicole Nether",apEmail:"nnether@murdochs.com",storeCount:48,dcCount:4,statesServed:["CO","ID","MT","NE","TX","WY"]},
+{name:"Norby Distributing",legalName:"Norby Distributing Company",hqCity:"Dubuque",hqState:"IA",hqAddress:"5700 Saratoga Road",hqZip:"52002",phone:"563-556-8972",website:"www.norbysfarmfleet.com",ownerName:"Greg Norby",ownerEmail:"gwnorby@norbysfarmfleet.com",merchName:"Tanner Norby",merchEmail:"tnorby@norbysfarmfleet.com",acctName:"Paula Norby",acctEmail:"plnorby@norbysfarmfleet.com",apName:"Anita Heacock",apEmail:"arheacock@norbysfarmfleet.com",storeCount:12,dcCount:1,statesServed:["IA","KY"]},
+{name:"North 40 Outfitters",legalName:"North 40 Outfitters (CSWW, Inc.)",hqCity:"Great Falls",hqState:"MT",hqAddress:"5109 Alaska Trail",hqZip:"59405",phone:"406-761-6623",website:"",ownerName:"Wayne Wike",ownerEmail:"wayne.wike@north40.com",merchName:"Shane Keefer",merchEmail:"shane.keefer@north40.com",acctName:"Gabbye Rector",acctEmail:"gabbye.rector@north40.com",apName:"AP North 40",apEmail:"AP@North40.com",storeCount:12,dcCount:3,statesServed:["ID","MT","WA","WY"]},
+{name:"Old Mill Farm & Ranch",legalName:"Old Mill Farm & Ranch Supply, Inc",hqCity:"Belen",hqState:"NM",hqAddress:"19763 Hwy. 314",hqZip:"87002",phone:"505-865-5432",website:"",ownerName:"Corky Morrison",ownerEmail:"oldmill@nmia.com",merchName:"Corky Morrison",merchEmail:"oldmill@nmia.com",acctName:"Amy Chavez",acctEmail:"Amychavez19@aol.com",apName:"Amy Chavez",apEmail:"Amychavez19@aol.com",storeCount:2,dcCount:0,statesServed:["NM"]},
+{name:"Olney Rural King Supply",legalName:"Olney Rural King Supply",hqCity:"Olney",hqState:"IL",hqAddress:"3571 N. Union Drive",hqZip:"62450",phone:"618-392-3891",website:"www.ruralkingsupply.com",ownerName:"Brad Jones",ownerEmail:"bjones@bigrfarmandhome.com",merchName:"Ryan Jones",merchEmail:"rjones@bigrfarmandhome.com",acctName:"Maddy Jones",acctEmail:"Maddy@BigRFarmAndHome.com",apName:"Maddy Jones",apEmail:"Maddy@BigRFarmAndHome.com",storeCount:1,dcCount:0,statesServed:["IL"]},
+{name:"Quincy Farm Supply",legalName:"Quincy Farm Supply Co.",hqCity:"Quincy",hqState:"IL",hqAddress:"4625 Broadway St",hqZip:"62305",phone:"217-223-6970",website:"www.farmandhomesupply.com",ownerName:"Adam Bowles",ownerEmail:"abowles@farmandhomesupply.com",merchName:"Ross Altenhein",merchEmail:"raltenhein@farmandhomesupply.com",acctName:"Amanda Jones",acctEmail:"ajones@farmandhomesupply.com",apName:"Lisa Woods",apEmail:"lwoods@farmandhomesupply.com",storeCount:15,dcCount:2,statesServed:["IL","MO"]},
+{name:"Ranch & Home",legalName:"Ranch & Home",hqCity:"Kennewick",hqState:"WA",hqAddress:"845 N. Columbia Center Blvd.",hqZip:"99336",phone:"509-737-1996",website:"",ownerName:"Bill Dress",ownerEmail:"bill@ranch-home.com",merchName:"Bill Dress",merchEmail:"bill@ranch-home.com",acctName:"Jeff Dress",acctEmail:"jeff@ranch-home.com",apName:"",apEmail:"",storeCount:4,dcCount:0,statesServed:["WA"]},
+{name:"Running Supply (Runnings)",legalName:"Running Supply, Inc.",hqCity:"Marshall",hqState:"MN",hqAddress:"901 N. Highway 59",hqZip:"56258",phone:"507-532-9566",website:"www.myrunnings.com",ownerName:"Dennis Reed",ownerEmail:"dennisr@runnings.com",merchName:"Brian Odegaard",merchEmail:"briano@runnings.com",acctName:"Jeff Haukom",acctEmail:"jeffh@runnings.com",apName:"Sal Nielsen",apEmail:"saln@runnings.com",storeCount:90,dcCount:3,statesServed:["IA","MN","ND","SD","WI"]},
+{name:"Shipton's Big R",legalName:"Shipton's Big R, Inc.",hqCity:"Billings",hqState:"MT",hqAddress:"1411 3rd Avenue North",hqZip:"59101",phone:"406-252-5707",website:"www.shiptonsbigr.com",ownerName:"Jay Carroll",ownerEmail:"jay@shiptonsbigr.com",merchName:"Krista Martin",merchEmail:"krista@shiptonsbigr.com",acctName:"Krista Martin",acctEmail:"krista@shiptonsbigr.com",apName:"Dana Fox",apEmail:"dana@shiptonsbigr.com",storeCount:6,dcCount:1,statesServed:["MT"]},
+{name:"Shoppers Supply",legalName:"Shoppers Supply (G-P Dist.,Inc)",hqCity:"Chandler",hqState:"AZ",hqAddress:"2880 S. Alma School Rd.",hqZip:"85286",phone:"",website:"www.shoppersfarmstore.com",ownerName:"Tyler Schmidt",ownerEmail:"tylers@shoppersfarmstore.com",merchName:"Haley Burroughs",merchEmail:"haley@shoppersfarmstore.com",acctName:"Jenay Roberts",acctEmail:"jenayr@shoppersfarmstore.com",apName:"AP Shoppers",apEmail:"accountspayable@shoppersfarmstore.com",storeCount:3,dcCount:0,statesServed:["AZ"]},
+{name:"Theisen Supply",legalName:"Theisen Supply, Inc.",hqCity:"Dubuque",hqState:"IA",hqAddress:"6201 Chavenelle Rd",hqZip:"52002",phone:"563-556-4738",website:"www.theisens.com",ownerName:"Steve Jensen",ownerEmail:"stevej@theisens.com",merchName:"Steve Jensen",merchEmail:"stevej@theisens.com",acctName:"Dan Poster",acctEmail:"Danp@theisens.com",apName:"Dede Ansel",apEmail:"dedea@theisens.com",storeCount:27,dcCount:2,statesServed:["IA","IL","WI"]},
+{name:"Western Big R (Fallon)",legalName:"Western Big R, Inc (Fallon)",hqCity:"Fallon",hqState:"NV",hqAddress:"3325 Reno Hwy",hqZip:"89406",phone:"775-575-2491",website:"www.bigrwest.com",ownerName:"John McAllister",ownerEmail:"johnm@bigrwest.com",merchName:"Lane McAllister",merchEmail:"lane@bigrwest.com",acctName:"John McAllister",acctEmail:"johnm@bigrwest.com",apName:"Berta Ross",apEmail:"bertar@bigrwest.com",storeCount:1,dcCount:0,statesServed:["NV"]},
+{name:"Western Mercantile",legalName:"Western Mercantile Inc.",hqCity:"Tijeras",hqState:"NM",hqAddress:"500 Hwy 333",hqZip:"87059",phone:"505-281-0664",website:"",ownerName:"Bryleigh Monahan",ownerEmail:"wmercantile@aol.com",merchName:"Bryleigh Monahan",merchEmail:"wmercantile@aol.com",acctName:"Bryleigh Monahan",acctEmail:"wmercantile@aol.com",apName:"Bryleigh Monahan",apEmail:"wmercantile@aol.com",storeCount:2,dcCount:0,statesServed:["NM"]}
+];
+
+const VENDORS=[
+{supplierNum:"1000484",name:"Advanced Distribution Services LTD",contact:"Ryan Bitzer",territory:"all members",createdDate:"2021-06-14",status:"Warehouse",categoryManager:"Daniel Semrad",plStatus:"Expired",plEndDate:"2026-02-01",plDaysLeft:-101,coiStatus:"Current",coiEndDate:"2026-04-01",coiDaysLeft:-42,archiveFlag:"",notes:"Done"},
+{supplierNum:"1001010",name:"All American Pet Mfg. dba The Wild Bone Co",contact:"Robert Klein",territory:"all members",createdDate:"2022-04-22",status:"Active",categoryManager:"Brian Kraby",plStatus:"Current",plEndDate:"2026-05-13",plDaysLeft:0,coiStatus:"Expired",coiEndDate:"2026-02-01",coiDaysLeft:-101,archiveFlag:"",notes:"Email twice & called"},
+{supplierNum:"13950",name:"Alton Industry Ltd Group",contact:"Andrew Scheib",territory:"Runnings, Atwoods, Theisens, Gebos, Buchheits, L&M, Quincy Farm Supply, Norby, Family Center, Farm King, Big Blue, Falders, Fleet & Farm, Olney Rural King",createdDate:"2016-07-15",status:"Active",categoryManager:"Jonathan Patterson",plStatus:"Current",plEndDate:"2026-12-31",plDaysLeft:232,coiStatus:"Current",coiEndDate:"2026-09-03",coiDaysLeft:113,archiveFlag:"",notes:""},
+{supplierNum:"630501",name:"Amturf Enterprises, LLC",contact:"Raimey Hoff",territory:"all members",createdDate:"2007-06-07",status:"Active",categoryManager:"Tara Torres",plStatus:"Current",plEndDate:"2026-09-01",plDaysLeft:111,coiStatus:"Current",coiEndDate:"2026-06-25",coiDaysLeft:43,archiveFlag:"",notes:""},
+{supplierNum:"V54180",name:"Boston Distribution, Inc.",contact:"Jim Boston",territory:"all members",createdDate:"2021-03-12",status:"Active",categoryManager:"Ed Ensminger",plStatus:"Current",plEndDate:"2026-12-31",plDaysLeft:232,coiStatus:"Current",coiEndDate:"2026-12-22",coiDaysLeft:223,archiveFlag:"",notes:""},
+{supplierNum:"1002080",name:"Cherokee Mfg.",contact:"Doug Austin",territory:"all members",createdDate:"2024-04-09",status:"Active",categoryManager:"Tara Torres",plStatus:"Current",plEndDate:"2026-09-03",plDaysLeft:113,coiStatus:"Current",coiEndDate:"2026-12-31",coiDaysLeft:232,archiveFlag:"",notes:""},
+{supplierNum:"V50750",name:"CINSA USA INC",contact:"Raul Trujillo",territory:"all members",createdDate:"2020-04-01",status:"Active",categoryManager:"Tara Torres",plStatus:"Current",plEndDate:"2026-07-01",plDaysLeft:49,coiStatus:"Current",coiEndDate:"2026-12-28",coiDaysLeft:229,archiveFlag:"",notes:""},
+{supplierNum:"1002660",name:"Cleanaire Inc. dba Pamlico Air",contact:"Don Williams",territory:"all members",createdDate:"2025-06-04",status:"Active",categoryManager:"Ed Ensminger",plStatus:"Current",plEndDate:"2026-07-01",plDaysLeft:49,coiStatus:"Current",coiEndDate:"2027-01-01",coiDaysLeft:233,archiveFlag:"",notes:""},
+{supplierNum:"1002370",name:"Crane USA",contact:"Dirk Niedermann",territory:"all members",createdDate:"2024-11-07",status:"Active",categoryManager:"Ed Ensminger",plStatus:"Current",plEndDate:"2027-01-01",plDaysLeft:233,coiStatus:"Current",coiEndDate:"2026-07-10",coiDaysLeft:58,archiveFlag:"",notes:"Done"},
+{supplierNum:"1001304",name:"Elenco Electronics, Inc.",contact:"Michael Chapman",territory:"all members",createdDate:"2022-10-28",status:"Active",categoryManager:"Tara Torres",plStatus:"Current",plEndDate:"2026-04-14",plDaysLeft:-29,coiStatus:"Current",coiEndDate:"2026-09-30",coiDaysLeft:140,archiveFlag:"",notes:""},
+{supplierNum:"253925",name:"Emsco Group",contact:"Adam Brozewicz",territory:"all members",createdDate:"1992-05-08",status:"Active",categoryManager:"Tara Torres",plStatus:"Current",plEndDate:"2026-04-01",plDaysLeft:-42,coiStatus:"Current",coiEndDate:"2026-09-30",coiDaysLeft:140,archiveFlag:"",notes:""},
+{supplierNum:"1002733",name:"Equity Sales and Marketing",contact:"Declan Bilyew",territory:"all members",createdDate:"2025-07-15",status:"Active",categoryManager:"Ed Ensminger",plStatus:"Current",plEndDate:"2026-08-04",plDaysLeft:83,coiStatus:"Current",coiEndDate:"2026-12-01",coiDaysLeft:202,archiveFlag:"",notes:""},
+{supplierNum:"1002627",name:"Evergreen Way, Inc. dba Arber",contact:"Vanessa Dawson",territory:"all members",createdDate:"2025-05-19",status:"Active",categoryManager:"Tara Torres",plStatus:"Current",plEndDate:"2030-05-01",plDaysLeft:1449,coiStatus:"Expiring Soon",coiEndDate:"2026-02-09",coiDaysLeft:-93,archiveFlag:"",notes:"Email / Done"},
+{supplierNum:"V52810",name:"Far East Brokers & Consultants",contact:"Hope Ferguson",territory:"all members",createdDate:"2020-10-19",status:"Active",categoryManager:"Tara Torres",plStatus:"Current",plEndDate:"2030-02-09",plDaysLeft:1368,coiStatus:"Current",coiEndDate:"2026-10-31",coiDaysLeft:171,archiveFlag:"",notes:""},
+{supplierNum:"114375",name:"Fountainhead Group / Burgess",contact:"Francesca Romano",territory:"Runnings, Atwoods, Gebos, Norby's, L&M, Big Blue",createdDate:"1989-08-25",status:"Active",categoryManager:"Tara Torres",plStatus:"Current",plEndDate:"2026-11-01",plDaysLeft:172,coiStatus:"Current",coiEndDate:"2026-05-25",coiDaysLeft:12,archiveFlag:"",notes:""},
+{supplierNum:"1001523",name:"Handstand Kitchen",contact:"Jane Cole",territory:"all members",createdDate:"2023-03-17",status:"Active",categoryManager:"Tara Torres",plStatus:"Current",plEndDate:"2026-03-31",plDaysLeft:-43,coiStatus:"Current",coiEndDate:"2026-12-02",coiDaysLeft:203,archiveFlag:"",notes:""},
+{supplierNum:"1002722",name:"Haviland Enterprises Inc.",contact:"Chris Claysmith",territory:"all members",createdDate:"2025-07-08",status:"Active",categoryManager:"Tara Torres",plStatus:"Expired",plEndDate:"2026-01-30",plDaysLeft:-103,coiStatus:"Current",coiEndDate:"2026-11-30",coiDaysLeft:201,archiveFlag:"",notes:"Extended - Done"},
+{supplierNum:"1001857",name:"Hose Box, Inc.",contact:"Perry Denton",territory:"all members",createdDate:"2023-10-12",status:"Active",categoryManager:"Brian Kraby",plStatus:"Current",plEndDate:"2026-09-20",plDaysLeft:130,coiStatus:"Current",coiEndDate:"2026-10-21",coiDaysLeft:161,archiveFlag:"",notes:""},
+{supplierNum:"1000972",name:"Indian American Trade Inc (ASA Agrotech)",contact:"Vineet Jhawar",territory:"all members",createdDate:"2022-04-04",status:"Active",categoryManager:"Brian Kraby",plStatus:"Current",plEndDate:"2026-03-30",plDaysLeft:-44,coiStatus:"Expired",coiEndDate:"2025-10-04",coiDaysLeft:-221,archiveFlag:"X",notes:"Email"},
+{supplierNum:"V37630",name:"J & J Global LLC / Import",contact:"Johnny Ozuna",territory:"—",createdDate:"2017-04-27",status:"Active",categoryManager:"Tara Torres",plStatus:"Current",plEndDate:"2026-12-31",plDaysLeft:232,coiStatus:"Current",coiEndDate:"2026-06-12",coiDaysLeft:30,archiveFlag:"",notes:""},
+{supplierNum:"1002953",name:"Jensen Enterprises dba Harvest Pillar",contact:"Tyler Fisher",territory:"all members",createdDate:"2025-12-12",status:"Active",categoryManager:"Brian Kraby",plStatus:"Current",plEndDate:"2026-12-31",plDaysLeft:232,coiStatus:"Current",coiEndDate:"2026-09-01",coiDaysLeft:111,archiveFlag:"",notes:""},
+{supplierNum:"V29840",name:"Land N Sea Distributing Company, Inc.",contact:"John Clarke",territory:"all members",createdDate:"2015-06-11",status:"Active",categoryManager:"Robin Bremer",plStatus:"Current",plEndDate:"2026-03-31",plDaysLeft:-43,coiStatus:"Current",coiEndDate:"2026-12-01",coiDaysLeft:202,archiveFlag:"",notes:""},
+{supplierNum:"843176",name:"M. Jacob & Sons dba Sprayco Consumer Products",contact:"Matt Gurthet",territory:"all members",createdDate:"2008-07-11",status:"Warehouse",categoryManager:"Ashley Buck",plStatus:"Current",plEndDate:"2032-11-21",plDaysLeft:2384,coiStatus:"Current",coiEndDate:"2026-06-10",coiDaysLeft:28,archiveFlag:"",notes:""},
+{supplierNum:"585310",name:"Meguiars Inc.",contact:"Bill Doss",territory:"all members",createdDate:"2019-03-11",status:"Active",categoryManager:"Sheila Toombs",plStatus:"Current",plEndDate:"2027-01-01",plDaysLeft:233,coiStatus:"Expiring Soon",coiEndDate:"2026-03-01",coiDaysLeft:-73,archiveFlag:"",notes:"Done"},
+{supplierNum:"594950",name:"Midwest Can Company",contact:"Si Corbin",territory:"all members",createdDate:"2006-10-25",status:"Warehouse",categoryManager:"Daniel Semrad",plStatus:"Current",plEndDate:"2032-12-18",plDaysLeft:2411,coiStatus:"Expired",coiEndDate:"2026-01-26",coiDaysLeft:-107,archiveFlag:"",notes:"Email COI & PL / Done"},
+{supplierNum:"V42940",name:"Misco Enterprises (HK) Limited",contact:"John Young",territory:"all members",createdDate:"2018-06-14",status:"Active",categoryManager:"Tara Torres",plStatus:"Expired",plEndDate:"2026-02-01",plDaysLeft:-101,coiStatus:"Expired",coiEndDate:"2026-02-01",coiDaysLeft:-101,archiveFlag:"",notes:"Email / Done"},
+{supplierNum:"V21590",name:"Missry Associates dba Misco Enterprises",contact:"John Young",territory:"all members",createdDate:"2017-02-06",status:"Active",categoryManager:"Tara Torres",plStatus:"Expired",plEndDate:"2026-02-01",plDaysLeft:-101,coiStatus:"Expired",coiEndDate:"2026-02-01",coiDaysLeft:-101,archiveFlag:"",notes:"Email / Done"},
+{supplierNum:"1002732",name:"Natural Pack Inc dba SuperMoss",contact:"Melissa Franzen",territory:"all members",createdDate:"2025-07-15",status:"Active",categoryManager:"Tara Torres",plStatus:"Current",plEndDate:"2026-07-01",plDaysLeft:49,coiStatus:"Current",coiEndDate:"2026-12-04",coiDaysLeft:205,archiveFlag:"",notes:""},
+{supplierNum:"655250",name:"Old World Industries LLC",contact:"Jim Spaeth",territory:"Runnings, Atwoods, L&M, Norbys",createdDate:"1995-06-15",status:"Active",categoryManager:"Sheila Toombs",plStatus:"Current",plEndDate:"2027-01-01",plDaysLeft:233,coiStatus:"Current",coiEndDate:"2026-09-30",coiDaysLeft:140,archiveFlag:"",notes:""},
+{supplierNum:"659530",name:"Optimus Enterprise, Inc.",contact:"Ting Shieh",territory:"all members",createdDate:"2018-06-18",status:"Active",categoryManager:"Ed Ensminger",plStatus:"Current",plEndDate:"2026-05-12",plDaysLeft:-1,coiStatus:"Current",coiEndDate:"2026-09-15",coiDaysLeft:125,archiveFlag:"X",notes:""},
+{supplierNum:"V19470",name:"Orion",contact:"Mike Mast",territory:"all members",createdDate:"2013-03-07",status:"Active",categoryManager:"Sheila Toombs",plStatus:"Current",plEndDate:"2027-01-01",plDaysLeft:233,coiStatus:"Current",coiEndDate:"2026-11-22",coiDaysLeft:193,archiveFlag:"",notes:""},
+{supplierNum:"1001929",name:"ORPC",contact:"Mike Schaeffer",territory:"all members",createdDate:"2023-11-20",status:"Active",categoryManager:"Robin Bremer",plStatus:"Current",plEndDate:"2026-06-01",plDaysLeft:19,coiStatus:"Current",coiEndDate:"2026-12-30",coiDaysLeft:231,archiveFlag:"",notes:""},
+{supplierNum:"1000927",name:"Performance Apparel, LLC",contact:"Steve Lee",territory:"—",createdDate:"2022-03-14",status:"Active",categoryManager:"Addison Coleman",plStatus:"Current",plEndDate:"2026-03-31",plDaysLeft:-43,coiStatus:"Current",coiEndDate:"2026-12-31",coiDaysLeft:232,archiveFlag:"",notes:""},
+{supplierNum:"692401",name:"Pic Corporation",contact:"Adam Marlatt",territory:"Runnings, Bomgaars, Atwoods, Theisens, Gebo's, Buchheits, Quincy Farm, L&M, Norbys, Family Center, Farm King, Big Blue, Olney Rural King",createdDate:"1990-02-23",status:"Active",categoryManager:"Tara Torres",plStatus:"Current",plEndDate:"2026-05-31",plDaysLeft:18,coiStatus:"Current",coiEndDate:"2026-08-01",coiDaysLeft:80,archiveFlag:"",notes:""},
+{supplierNum:"V51490",name:"Renee's Garden, LLC",contact:"Brian Montgomery",territory:"all members",createdDate:"2020-06-12",status:"Active",categoryManager:"Tara Torres",plStatus:"Current",plEndDate:"2026-06-30",plDaysLeft:48,coiStatus:"Expiring Soon",coiEndDate:"2026-02-25",coiDaysLeft:-77,archiveFlag:"",notes:"Email / Done"},
+{supplierNum:"1002741",name:"Rezip Co.",contact:"Lily Sei",territory:"all members",createdDate:"2025-07-18",status:"Active",categoryManager:"Tara Torres",plStatus:"Current",plEndDate:"2028-07-01",plDaysLeft:780,coiStatus:"Current",coiEndDate:"2026-09-02",coiDaysLeft:112,archiveFlag:"",notes:""},
+{supplierNum:"1000748",name:"Rico Industries",contact:"",territory:"all members",createdDate:"2021-11-09",status:"Active",categoryManager:"Tara Torres",plStatus:"Current",plEndDate:"2026-11-01",plDaysLeft:172,coiStatus:"Expiring Soon",coiEndDate:"2026-03-01",coiDaysLeft:-73,archiveFlag:"",notes:"Email"},
+{supplierNum:"V22370",name:"Skyline USA, Inc.",contact:"Ismael Pacheco",territory:"all members",createdDate:"2013-10-11",status:"Active",categoryManager:"Robin Bremer",plStatus:"Expiring Soon",plEndDate:"2026-03-01",plDaysLeft:-73,coiStatus:"Current",coiEndDate:"2027-01-26",coiDaysLeft:258,archiveFlag:"",notes:"Email / Done"},
+{supplierNum:"999328",name:"Stearns Packaging Corp.",contact:"Cynthia Everitt",territory:"all members",createdDate:"1981-12-24",status:"Active",categoryManager:"Tara Torres",plStatus:"Current",plEndDate:"2029-08-06",plDaysLeft:1181,coiStatus:"Current",coiEndDate:"2026-03-31",coiDaysLeft:-43,archiveFlag:"",notes:"Email PL / Done"},
+{supplierNum:"V41570",name:"Supply Chain Sources LLC",contact:"Max Dolder",territory:"all members",createdDate:"2018-03-01",status:"Active",categoryManager:"Ed Ensminger",plStatus:"Expiring Soon",plEndDate:"2026-02-05",plDaysLeft:-97,coiStatus:"Current",coiEndDate:"2026-08-02",coiDaysLeft:81,archiveFlag:"",notes:"Email / Done"},
+{supplierNum:"883819",name:"Torin, Inc.",contact:"Mima Marrin",territory:"all members",createdDate:"2008-01-16",status:"Warehouse",categoryManager:"Daniel Semrad",plStatus:"Current",plEndDate:"2030-06-05",plDaysLeft:1484,coiStatus:"Current",coiEndDate:"2026-12-31",coiDaysLeft:232,archiveFlag:"",notes:""},
+{supplierNum:"1002458",name:"Tusk Brands LLC",contact:"Jacob Grant",territory:"all members",createdDate:"2024-12-20",status:"Active",categoryManager:"Ed Ensminger",plStatus:"Current",plEndDate:"2030-07-01",plDaysLeft:1510,coiStatus:"Current",coiEndDate:"2027-01-21",coiDaysLeft:253,archiveFlag:"",notes:""},
+{supplierNum:"1002222",name:"U-C Coatings LLC",contact:"Richard Ahlstrom",territory:"all members",createdDate:"2024-07-16",status:"Active",categoryManager:"Ed Ensminger",plStatus:"Current",plEndDate:"2027-01-01",plDaysLeft:233,coiStatus:"Current",coiEndDate:"2026-11-26",coiDaysLeft:197,archiveFlag:"",notes:""},
+{supplierNum:"V21470",name:"Uncle Ray's LLC",contact:"Jim Schrader",territory:"all members",createdDate:"2021-04-21",status:"Active",categoryManager:"Tara Torres",plStatus:"Current",plEndDate:"2027-01-01",plDaysLeft:233,coiStatus:"Current",coiEndDate:"2026-03-31",coiDaysLeft:-43,archiveFlag:"X",notes:""},
+{supplierNum:"1002890",name:"Vesra LLC",contact:"Gregg Perry",territory:"all members",createdDate:"2025-11-07",status:"Active",categoryManager:"Ed Ensminger",plStatus:"Current",plEndDate:"2026-12-31",plDaysLeft:232,coiStatus:"Current",coiEndDate:"2026-10-06",coiDaysLeft:146,archiveFlag:"",notes:""},
+{supplierNum:"1001533",name:"Wall Lenk Corporation",contact:"Chris Eastman",territory:"all members",createdDate:"2023-03-27",status:"Active",categoryManager:"Ed Ensminger",plStatus:"Current",plEndDate:"2027-01-01",plDaysLeft:233,coiStatus:"Current",coiEndDate:"2027-01-01",coiDaysLeft:233,archiveFlag:"X",notes:""},
+{supplierNum:"1002323",name:"Warphole LLC",contact:"Art Angel",territory:"all members",createdDate:"2024-10-16",status:"Active",categoryManager:"Tara Torres",plStatus:"Current",plEndDate:"2026-07-15",plDaysLeft:63,coiStatus:"Current",coiEndDate:"2026-07-27",coiDaysLeft:75,archiveFlag:"",notes:""},
+{supplierNum:"952925",name:"Wilmar Corporation",contact:"Chris Favro",territory:"Runnings, L&M, Big Blue",createdDate:"2003-02-04",status:"Active",categoryManager:"Ed Ensminger",plStatus:"Current",plEndDate:"2026-09-01",plDaysLeft:111,coiStatus:"Current",coiEndDate:"2026-03-31",coiDaysLeft:-43,archiveFlag:"",notes:""},
+{supplierNum:"956017",name:"Winston Products, LLC",contact:"Mark Moore",territory:"all members",createdDate:"2008-02-28",status:"Active",categoryManager:"Sheila Toombs",plStatus:"Current",plEndDate:"2026-07-01",plDaysLeft:49,coiStatus:"Current",coiEndDate:"2026-12-31",coiDaysLeft:232,archiveFlag:"",notes:""}
+];
+
+let poData=[];
+
+function nav(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(el)el.classList.add('active');
+  const t={dashboard:'Dashboard',pos:'Purchase Orders',add:'Log New PO',members:'Members — 29 companies · 697 stores',contacts:'Contacts Directory',vendors:'Vendor Compliance Tracker — 49 vendors',trends:'Trends & Analytics'};
+  document.getElementById('pageTitle').textContent=t[id]||id;
+  if(id==='pos')renderPOs();
+  if(id==='members')renderMembers();
+  if(id==='contacts')renderContacts();
+  if(id==='vendors'){renderVendorMetrics();renderVendors();}
+  if(id==='trends')renderTrends();
+  closeDetail();
+}
+
+function fmt(v){return '$'+Number(v).toLocaleString();}
+function initials(n){return n.split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();}
+function sbadge(s){const c={Pending:'b-p',Shipped:'b-s',Received:'b-r',Issue:'b-i'};return`<span class="badge ${c[s]||''}">${s}</span>`;}
+function rbadge(s){const c={EDI:'b-e',Email:'b-m',Manual:'b-n'};return`<span class="badge ${c[s]||''}">${s}</span>`;}
+function roleBadge(r){const c={Owner:'b-owner',Merchandising:'b-merch',Accounting:'b-acct',AP:'b-ap'};return`<span class="badge ${c[r]||'b-n'}">${r}</span>`;}
+
+function updateDashMetrics(){
+  const open=poData.filter(r=>r.status==='Pending'||r.status==='Shipped').length;
+  const issues=poData.filter(r=>r.status==='Issue').length;
+  const ytd=poData.reduce((s,r)=>s+(r.value||0),0);
+  const now=new Date();
+  const thisWeek=poData.filter(r=>{const d=new Date(r.date);return(now-d)/(1000*60*60*24)<=7;}).length;
+  document.getElementById('mOpenPOs').textContent=open;
+  document.getElementById('mOpenSub').textContent=open===0?'No open POs':`${thisWeek} added this week`;
+  document.getElementById('mYTDVal').textContent=ytd===0?'$0':ytd>=1000000?'$'+(ytd/1000000).toFixed(2)+'M':'$'+(ytd/1000).toFixed(1)+'K';
+  document.getElementById('mYTDSub').textContent=ytd===0?'Log your first PO to begin':`Across ${new Set(poData.map(r=>r.member)).size} member${poData.length!==1?'s':''}`;
+  document.getElementById('mFlagged').textContent=issues;
+  document.getElementById('mFlaggedSub').textContent=issues===0?'No issues flagged':`${issues} PO${issues!==1?'s':''} need attention`;
+}
+
+function renderRecent(){
+  const tbody=document.getElementById('recentTbody');
+  if(poData.length===0){
+    tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:2.5rem 1rem;color:var(--text2)">
+      <div style="font-size:28px;margin-bottom:.625rem;opacity:.4">📋</div>
+      <div style="font-weight:600;margin-bottom:.25rem;color:var(--text)">No purchase orders yet</div>
+      <div style="font-size:12px">Drop a PDF on the <strong>Log New PO</strong> page to get started</div>
+    </td></tr>`;
+    return;
+  }
+  tbody.innerHTML=poData.slice(0,6).map(r=>`<tr class="${r.status==='Issue'?'alert-row':''}"><td class="mono" style="font-size:11px">${r.po}</td><td>${r.member}</td><td>${r.vendor}</td><td style="font-weight:600">${fmt(r.value)}</td><td>${rbadge(r.source)}</td><td>${sbadge(r.status)}</td></tr>`).join('');
+}
+
+function renderMemberBars(){
+  // Show PO value by member from real data; fall back to store count if no POs yet
+  const el=document.getElementById('memberBars');
+  if(poData.length===0){
+    // Empty state — show top members by store count with $0
+    const sorted=[...MEMBERS].sort((a,b)=>b.storeCount-a.storeCount).slice(0,8);
+    el.innerHTML=sorted.map(m=>`<div class="member-bar"><div class="mb-name">${m.name}</div><div class="bar-track"><div class="bar-fill" style="width:0%"></div></div><div class="mb-val" style="color:var(--text3)">$0</div></div>`).join('');
+    return;
+  }
+  // Aggregate real PO value by member
+  const totals={};
+  poData.forEach(r=>{totals[r.member]=(totals[r.member]||0)+(r.value||0);});
+  const sorted=Object.entries(totals).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const max=sorted[0][1]||1;
+  el.innerHTML=sorted.map(([name,val])=>`<div class="member-bar"><div class="mb-name">${name}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(val/max*100)}%"></div></div><div class="mb-val">${fmt(val)}</div></div>`).join('');
+}
+
+function populateFormSelects(){
+  document.getElementById('fMemSel').innerHTML='<option value="">Select member…</option>'+MEMBERS.map(m=>`<option>${m.name}</option>`).join('');
+  document.getElementById('fMember').innerHTML='<option value="">All Members</option>'+MEMBERS.map(m=>`<option>${m.name}</option>`).join('');
+}
+
+function renderPOs(){
+  const fM=document.getElementById('fMember').value;
+  const fS=document.getElementById('fStatus').value;
+  const fSrc=document.getElementById('fSource').value;
+  const fQ=(document.getElementById('fSearch').value||'').toLowerCase();
+  const rows=poData.filter(r=>(!fM||r.member===fM)&&(!fS||r.status===fS)&&(!fSrc||r.source===fSrc)&&(!fQ||r.po.toLowerCase().includes(fQ)||r.member.toLowerCase().includes(fQ)||r.vendor.toLowerCase().includes(fQ)));
+  document.getElementById('poTbody').innerHTML=rows.length?rows.map(r=>`<tr class="${r.status==='Issue'?'alert-row':''}"><td class="mono" style="font-size:11px">${r.po}</td><td style="font-size:11px;color:var(--text2)">${r.date}</td><td>${r.member}</td><td>${r.vendor}</td><td>${r.cat}</td><td style="font-weight:600">${fmt(r.value)}</td><td>${rbadge(r.source)}</td><td>${sbadge(r.status)}</td><td style="font-size:11px;color:var(--text2);max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.notes}</td></tr>`).join(''):`<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--text2)">No POs match current filters.</td></tr>`;
+}
+
+function renderMembers(){
+  const sort=document.getElementById('mSort').value;
+  const q=(document.getElementById('mSearch').value||'').toLowerCase();
+  let list=[...MEMBERS].filter(m=>!q||m.name.toLowerCase().includes(q)||m.hqState.toLowerCase().includes(q)||(m.statesServed||[]).join(',').toLowerCase().includes(q));
+  if(sort==='alpha')list.sort((a,b)=>a.name.localeCompare(b.name));
+  else if(sort==='state')list.sort((a,b)=>a.hqState.localeCompare(b.hqState));
+  else list.sort((a,b)=>b.storeCount-a.storeCount);
+  document.getElementById('memberGrid').innerHTML=list.map(m=>`<div class="mem-card" onclick="openDetail('${m.name.replace(/'/g,"\\'")}')"><div class="mem-name">${m.name}</div><div class="mem-hq">${m.hqCity}, ${m.hqState}</div><div class="mem-stats"><span class="mem-stat"><strong>${m.storeCount}</strong> stores</span>${m.dcCount>0?`<span class="mem-stat"><strong>${m.dcCount}</strong> DC${m.dcCount>1?'s':''}</span>`:''}</div><div class="state-pills">${(m.statesServed||[]).map(s=>`<span class="state-pill">${s}</span>`).join('')}</div></div>`).join('');
+}
+
+function openDetail(name){
+  const m=MEMBERS.find(x=>x.name===name);if(!m)return;
+  document.getElementById('dpName').textContent=m.name;
+  document.getElementById('dpLegal').textContent=m.legalName;
+  document.getElementById('dpStats').innerHTML=`<div class="dp-stat"><div class="dp-stat-label">Stores</div><div class="dp-stat-val">${m.storeCount}</div></div><div class="dp-stat"><div class="dp-stat-label">DCs</div><div class="dp-stat-val">${m.dcCount}</div></div><div class="dp-stat"><div class="dp-stat-label">States</div><div class="dp-stat-val">${(m.statesServed||[]).length}</div></div>`;
+  document.getElementById('dpHQ').textContent=`${m.hqAddress}, ${m.hqCity}, ${m.hqState} ${m.hqZip}`;
+  document.getElementById('dpPhone').textContent=m.phone||'No phone listed';
+  document.getElementById('dpWeb').innerHTML=m.website?`<a href="https://${m.website}" target="_blank" style="color:var(--blue)">${m.website}</a>`:'';
+  document.getElementById('dpStates').innerHTML=(m.statesServed||[]).map(s=>`<span class="state-pill">${s}</span>`).join('');
+  const contacts=[{role:'Owner',name:m.ownerName,email:m.ownerEmail},{role:'Merchandising',name:m.merchName,email:m.merchEmail},{role:'Accounting',name:m.acctName,email:m.acctEmail},{role:'AP',name:m.apName,email:m.apEmail}].filter(c=>c.name&&c.name!='nan'&&c.name.trim()!='');
+  document.getElementById('dpContacts').innerHTML=contacts.map(c=>`<div class="contact-row"><div class="contact-avatar">${initials(c.name)}</div><div class="contact-info"><div class="contact-name">${c.name}</div><div class="contact-role">${c.role}</div><div class="contact-email">${c.email}</div></div></div>`).join('');
+  document.getElementById('detailPanel').classList.add('open');
+  document.getElementById('detailOverlay').classList.add('open');
+  document.querySelectorAll('.mem-card').forEach(el=>el.classList.remove('selected'));
+  const found=[...document.querySelectorAll('.mem-card')].find(el=>el.querySelector('.mem-name')&&el.querySelector('.mem-name').textContent===m.name);
+  if(found)found.classList.add('selected');
+}
+
+function closeDetail(){
+  document.getElementById('detailPanel').classList.remove('open');
+  document.getElementById('detailOverlay').classList.remove('open');
+  document.querySelectorAll('.mem-card').forEach(el=>el.classList.remove('selected'));
+}
+
+function renderContacts(){
+  const role=document.getElementById('cRole').value;
+  const q=(document.getElementById('cSearch').value||'').toLowerCase();
+  let rows=[];
+  MEMBERS.forEach(m=>{
+    [{role:'Owner',name:m.ownerName,email:m.ownerEmail},{role:'Merchandising',name:m.merchName,email:m.merchEmail},{role:'Accounting',name:m.acctName,email:m.acctEmail},{role:'AP',name:m.apName,email:m.apEmail}].filter(c=>c.name&&c.name!='nan'&&c.name.trim()!='').forEach(c=>rows.push({...c,member:m.name,hq:`${m.hqCity}, ${m.hqState}`,phone:m.phone}));
+  });
+  rows=rows.filter(r=>(!role||r.role===role)&&(!q||r.name.toLowerCase().includes(q)||r.member.toLowerCase().includes(q)));
+  document.getElementById('contactTbody').innerHTML=rows.map(r=>`<tr><td style="font-weight:600">${r.name}</td><td>${roleBadge(r.role)}</td><td>${r.member}</td><td style="font-size:11px;color:var(--text2)">${r.hq}</td><td style="font-size:11px;color:var(--blue)">${r.email}</td><td style="font-size:11px;color:var(--text2)">${r.phone}</td></tr>`).join('');
+}
+
+function populateVendorFilters(){
+  const mgrs=[...new Set(VENDORS.map(v=>v.categoryManager))].sort();
+  document.getElementById('vfMgr').innerHTML='<option value="">All Managers</option>'+mgrs.map(m=>`<option>${m}</option>`).join('');
+  document.getElementById('fVendSel').innerHTML='<option value="">Select vendor…</option>'+[...VENDORS].sort((a,b)=>a.name.localeCompare(b.name)).map(v=>`<option>${v.name}</option>`).join('');
+}
+function dotColor(status,days){
+  if(status==='Expired'||days<0) return 'dot-bad';
+  if(status==='Expiring Soon'||days<30) return 'dot-warn';
+  return 'dot-ok';
+}
+function statusColor(s,d){
+  if(s==='Expired'||d<0) return '#C93535';
+  if(s==='Expiring Soon'||d<30) return '#E89B1A';
+  return '#1D9E75';
+}
+function daysChip(d){
+  if(d===null||d===undefined) return '';
+  if(d<0) return `<span class="cbar-days days-bad">${Math.abs(d)}d overdue</span>`;
+  if(d<30) return `<span class="cbar-days days-warn">${d}d left</span>`;
+  return `<span class="cbar-days days-ok">${d}d</span>`;
+}
+function renderVendorMetrics(){
+  const expired=VENDORS.filter(v=>v.plStatus==='Expired'||v.coiStatus==='Expired').length;
+  const expiring=VENDORS.filter(v=>(v.plStatus==='Expiring Soon'||v.coiStatus==='Expiring Soon')&&v.coiStatus!=='Expired'&&v.plStatus!=='Expired').length;
+  const archive=VENDORS.filter(v=>v.archiveFlag==='X').length;
+  const active=VENDORS.filter(v=>v.status==='Active').length;
+  document.getElementById('vendMetrics').innerHTML=`
+    <div class="mc"><div class="mc-label">Total Vendors</div><div class="mc-val">${VENDORS.length}</div><div class="mc-sub">${active} active · ${VENDORS.length-active} warehouse</div></div>
+    <div class="mc"><div class="mc-label">Fully Current</div><div class="mc-val" style="color:var(--green)">${VENDORS.filter(v=>v.plStatus==='Current'&&v.coiStatus==='Current').length}</div><div class="mc-sub">PL & COI both valid</div></div>
+    <div class="mc"><div class="mc-label">Need Attention</div><div class="mc-val" style="color:#E89B1A">${expiring}</div><div class="mc-sub">expiring within 90 days</div></div>
+    <div class="mc"><div class="mc-label">Expired / Overdue</div><div class="mc-val" style="color:var(--red)">${expired}</div><div class="mc-sub">${archive} flagged for archive</div></div>`;
+}
+function renderVendors(){
+  const fS=document.getElementById('vfStatus').value;
+  const fPL=document.getElementById('vfPL').value;
+  const fCOI=document.getElementById('vfCOI').value;
+  const fMgr=document.getElementById('vfMgr').value;
+  const fQ=(document.getElementById('vfSearch').value||'').toLowerCase();
+  const rows=VENDORS.filter(v=>(!fS||v.status===fS)&&(!fPL||v.plStatus===fPL)&&(!fCOI||v.coiStatus===fCOI)&&(!fMgr||v.categoryManager===fMgr)&&(!fQ||v.name.toLowerCase().includes(fQ)||v.contact.toLowerCase().includes(fQ)||v.supplierNum.toLowerCase().includes(fQ)));
+  const needsAttn=r=>(r.plStatus==='Expired'||r.coiStatus==='Expired'||r.plDaysLeft<0||r.coiDaysLeft<0);
+  const sorted=[...rows].sort((a,b)=>{if(needsAttn(a)&&!needsAttn(b))return -1;if(!needsAttn(a)&&needsAttn(b))return 1;return a.name.localeCompare(b.name);});
+  document.getElementById('vendTbody').innerHTML=sorted.length?sorted.map(v=>{
+    const rowStyle=needsAttn(v)?'style="background:rgba(252,235,235,0.3)"':'';
+    const plDot=`<span class="compliance-dot ${dotColor(v.plStatus,v.plDaysLeft)}"></span>`;
+    const coiDot=`<span class="compliance-dot ${dotColor(v.coiStatus,v.coiDaysLeft)}"></span>`;
+    const archBadge=v.archiveFlag==='X'?`<span class="archive-badge">Archive</span>`:'';
+    const notesBadge=v.notes?`<span class="notes-chip" title="${v.notes}">note</span>`:'';
+    return `<tr ${rowStyle} onclick="openVendDetail('${v.supplierNum}')" style="cursor:pointer">
+      <td style="width:24px;text-align:center">${archBadge}</td>
+      <td class="mono" style="font-size:11px;color:var(--text2)">${v.supplierNum}</td>
+      <td style="font-weight:500;max-width:180px">${v.name}</td>
+      <td style="font-size:12px;color:var(--text2)">${v.contact}</td>
+      <td style="font-size:12px;color:var(--text2)">${v.categoryManager}</td>
+      <td><span class="badge ${v.status==='Active'?'b-r':'b-n'}" style="font-size:10px">${v.status}</span></td>
+      <td style="white-space:nowrap">${plDot} <span style="font-size:12px;color:${statusColor(v.plStatus,v.plDaysLeft)};font-weight:500">${v.plStatus}</span></td>
+      <td style="font-size:11px;color:var(--text2);white-space:nowrap">${v.plEndDate} ${daysChip(v.plDaysLeft)}</td>
+      <td style="white-space:nowrap">${coiDot} <span style="font-size:12px;color:${statusColor(v.coiStatus,v.coiDaysLeft)};font-weight:500">${v.coiStatus}</span></td>
+      <td style="font-size:11px;color:var(--text2);white-space:nowrap">${v.coiEndDate} ${daysChip(v.coiDaysLeft)}</td>
+      <td style="font-size:11px;color:var(--text2);max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${v.territory==='all members'?'<span style="color:var(--green);font-size:11px">All members</span>':v.territory}</td>
+      <td>${notesBadge}</td>
+    </tr>`;
+  }).join(''):`<tr><td colspan="12" style="text-align:center;padding:2rem;color:var(--text2)">No vendors match.</td></tr>`;
+}
+function openVendDetail(num){
+  const v=VENDORS.find(x=>x.supplierNum===num);if(!v)return;
+  document.getElementById('vdpName').textContent=v.name;
+  document.getElementById('vdpNum').textContent=`Supplier #${v.supplierNum} · ${v.status} · Mgr: ${v.categoryManager}`;
+  document.getElementById('vdpCompliance').innerHTML=`
+    <div class="compliance-bar">
+      <span class="cbar-label">Price list</span>
+      <span class="compliance-dot ${dotColor(v.plStatus,v.plDaysLeft)}"></span>
+      <span class="cbar-status" style="color:${statusColor(v.plStatus,v.plDaysLeft)}">${v.plStatus}</span>
+      ${daysChip(v.plDaysLeft)}
+      <span class="cbar-date">Expires ${v.plEndDate}</span>
+    </div>
+    <div class="compliance-bar">
+      <span class="cbar-label">COI</span>
+      <span class="compliance-dot ${dotColor(v.coiStatus,v.coiDaysLeft)}"></span>
+      <span class="cbar-status" style="color:${statusColor(v.coiStatus,v.coiDaysLeft)}">${v.coiStatus}</span>
+      ${daysChip(v.coiDaysLeft)}
+      <span class="cbar-date">Expires ${v.coiEndDate}</span>
+    </div>
+    ${v.notes?`<div style="margin-top:.5rem;font-size:12px;color:var(--text2);background:var(--bg2);padding:.5rem .75rem;border-radius:6px"><strong>Notes:</strong> ${v.notes}</div>`:''}
+    ${v.archiveFlag==='X'?`<div style="margin-top:.5rem;font-size:12px;color:#791F1F;background:#FCEBEB;padding:.5rem .75rem;border-radius:6px">⚑ Flagged for archive review</div>`:''}`;
+  document.getElementById('vdpDetails').innerHTML=`<div style="display:grid;gap:6px;font-size:12px">
+    <div style="display:flex;gap:8px"><span style="color:var(--text2);width:110px">Contact</span><span style="font-weight:500">${v.contact||'—'}</span></div>
+    <div style="display:flex;gap:8px"><span style="color:var(--text2);width:110px">Category mgr</span><span>${v.categoryManager}</span></div>
+    <div style="display:flex;gap:8px"><span style="color:var(--text2);width:110px">Supplier since</span><span>${v.createdDate}</span></div>
+    <div style="display:flex;gap:8px"><span style="color:var(--text2);width:110px">Status</span><span>${v.status}</span></div>
+  </div>`;
+  document.getElementById('vdpTerritory').textContent=v.territory==='all members'?'All 29 Mid-States members':v.territory||'—';
+  document.getElementById('vendDetailPanel').classList.add('open');
+  document.getElementById('vendOverlay').classList.add('open');
+}
+function closeVendDetail(){
+  document.getElementById('vendDetailPanel').classList.remove('open');
+  document.getElementById('vendOverlay').classList.remove('open');
+}
+
+let cVol,cCat,cYoY,cSrc,cSeas;
+function rebuildDash(){buildDash();}
+
+function buildDash(){
+  updateDashMetrics();
+
+  // Monthly PO value from real data
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const monthlyTotals=new Array(12).fill(0);
+  poData.forEach(r=>{
+    const m=new Date(r.date).getMonth();
+    if(!isNaN(m)) monthlyTotals[m]+=(r.value||0);
+  });
+  // Show last 6 months ending today
+  const nowM=new Date().getMonth();
+  const labels=[],vals=[];
+  for(let i=5;i>=0;i--){const m=(nowM-i+12)%12;labels.push(months[m]);vals.push(Math.round(monthlyTotals[m]/1000));}
+
+  const c1=document.getElementById('cVol').getContext('2d');
+  if(cVol)cVol.destroy();
+  cVol=new Chart(c1,{type:'bar',data:{labels,datasets:[{data:vals,backgroundColor:'#5DCAA5',borderRadius:4,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{ticks:{font:{size:11},callback:v=>'$'+v+'K'},grid:{color:'rgba(0,0,0,0.05)'}}}}});
+
+  // Category mix from real data
+  const cats={};
+  poData.forEach(r=>{cats[r.cat]=(cats[r.cat]||0)+(r.value||0);});
+  const catLabels=Object.keys(cats);
+  const catVals=Object.values(cats);
+  const catColors=['#5DCAA5','#378ADD','#888780','#D4537E','#639922','#EF9F27','#C96840'];
+  const c2=document.getElementById('cCat').getContext('2d');
+  if(cCat)cCat.destroy();
+  if(catLabels.length===0){
+    // Empty state donut
+    cCat=new Chart(c2,{type:'doughnut',data:{labels:['No data yet'],datasets:[{data:[1],backgroundColor:['#eeece7'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'66%',plugins:{legend:{display:false}}}});
+  } else {
+    cCat=new Chart(c2,{type:'doughnut',data:{labels:catLabels,datasets:[{data:catVals,backgroundColor:catColors.slice(0,catLabels.length),borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'66%',plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:10,padding:8}}}}});
+  }
+}
+
+function renderTrends(){
+  setTimeout(()=>{
+    // YoY: group by month for current year vs prior year
+    const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const curYear=new Date().getFullYear();
+    const curData=new Array(12).fill(null);
+    const priorData=new Array(12).fill(null);
+    poData.forEach(r=>{
+      const d=new Date(r.date);
+      const m=d.getMonth(); const y=d.getFullYear();
+      const v=(r.value||0)/1000;
+      if(y===curYear) curData[m]=(curData[m]||0)+v;
+      else if(y===curYear-1) priorData[m]=(priorData[m]||0)+v;
+    });
+
+    const c3=document.getElementById('cYoY').getContext('2d');
+    if(cYoY)cYoY.destroy();
+    cYoY=new Chart(c3,{type:'line',data:{labels:months,datasets:[
+      {label:String(curYear),data:curData,borderColor:'#1D9E75',backgroundColor:'rgba(29,158,117,0.08)',tension:0.35,fill:true,pointRadius:4,pointBackgroundColor:'#1D9E75'},
+      {label:String(curYear-1),data:priorData,borderColor:'rgba(0,0,0,0.2)',borderDash:[5,4],tension:0.35,pointRadius:2}
+    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},boxWidth:10}}},scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{ticks:{font:{size:11},callback:v=>'$'+v+'K'}}}}});
+
+    // Source breakdown from real data
+    const srcCounts={EDI:0,Email:0,Manual:0};
+    poData.forEach(r=>{if(srcCounts[r.source]!==undefined)srcCounts[r.source]++;});
+    const c4=document.getElementById('cSrc').getContext('2d');
+    if(cSrc)cSrc.destroy();
+    cSrc=new Chart(c4,{type:'bar',data:{labels:['EDI','Email','Manual'],datasets:[{data:[srcCounts.EDI,srcCounts.Email,srcCounts.Manual],backgroundColor:['#534AB7','#D4537E','#888780'],borderRadius:4,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:12}}},y:{ticks:{font:{size:11},stepSize:1},grid:{color:'rgba(0,0,0,0.05)'}}}}});
+
+    // Seasonal category — live from real data, grouped by category & month
+    const catColors={'Lawn & Garden':'#1D9E75','Automotive':'#378ADD','Sporting Goods':'#EF9F27','Apparel':'#D4537E','Hardware':'#888780','Tools':'#C96840','Other':'#9a9891'};
+    const catMonthly={};
+    poData.forEach(r=>{
+      const m=new Date(r.date).getMonth();
+      if(!catMonthly[r.cat])catMonthly[r.cat]=new Array(12).fill(0);
+      catMonthly[r.cat][m]+=(r.value||0)/1000;
+    });
+    const datasets=Object.entries(catMonthly).map(([cat,data])=>({
+      label:cat,data,borderColor:catColors[cat]||'#888',tension:0.4,pointRadius:2,fill:false
+    }));
+    const c5=document.getElementById('cSeas').getContext('2d');
+    if(cSeas)cSeas.destroy();
+    cSeas=new Chart(c5,{type:'line',data:{labels:months,datasets:datasets.length?datasets:[{label:'No data',data:new Array(12).fill(null),borderColor:'#eeece7'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},boxWidth:10}}},scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{ticks:{font:{size:11},callback:v=>'$'+v+'K'},grid:{color:'rgba(0,0,0,0.05)'}}}}});
+  },100);
+}
+
+function savePO(){
+  const po=document.getElementById('fPo').value.trim();
+  const member=document.getElementById('fMemSel').value;
+  const vendor=document.getElementById('fVendSel').value;
+  if(!po||!member||!vendor){alert('Please fill in PO #, Member, and Vendor.');return;}
+  poData.unshift({po,date:document.getElementById('fDate').value||new Date().toISOString().slice(0,10),member,vendor,cat:document.getElementById('fCatSel').value,value:parseFloat(document.getElementById('fVal').value)||0,source:document.getElementById('fSrc').value,status:document.getElementById('fStat').value,notes:document.getElementById('fNotes').value});
+  document.getElementById('saveMsg').style.display='block';
+  setTimeout(()=>document.getElementById('saveMsg').style.display='none',3000);
+  clearForm();renderRecent();updateDashMetrics();rebuildDash();
+}
+function clearForm(){
+  ['fPo','fDate','fBuyer','fVal','fShip','fNotes'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.value='';el.style.borderColor='';el.style.background='';}
+  });
+  ['fMemSel','fVendSel'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.value='';el.style.borderColor='';el.style.background='';}
+  });
+  clearConfidenceBadges();
+  resetDropZone();
+}
+
+// ── AI PO EXTRACTION ──────────────────────────────────────────────────────────
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('dropZone').classList.remove('dz-over');
+  const file = e.dataTransfer.files[0];
+  if (file) processFile(file);
+}
+
+function handleFileSelect(file) {
+  if (file) processFile(file);
+}
+
+async function processFile(file) {
+  const ext = file.name.split('.').pop().toLowerCase();
+  showAIProcessing(file.name);
+  try {
+    if (ext === 'pdf') {
+      await extractFromPDF(file);
+    } else if (['jpg','jpeg','png','gif','webp'].includes(ext)) {
+      await extractFromImage(file);
+    } else if (['xlsx','xls','csv'].includes(ext)) {
+      await extractFromSpreadsheet(file, ext);
+    } else {
+      throw new Error('Unsupported file type. Please use a PDF, image, or CSV.');
+    }
+  } catch(err) {
+    showAIError(err.message);
+  }
+}
+
+function showAIProcessing(filename) {
+  document.getElementById('dropZone').style.display = 'none';
+  document.getElementById('aiProcessing').style.display = 'block';
+  document.getElementById('aiResult').style.display = 'none';
+  document.getElementById('aiStatusText').textContent = `Reading ${filename}…`;
+  document.getElementById('aiStatusSub').textContent = 'Extracting text from your purchase order';
+}
+
+function showAIError(msg) {
+  document.getElementById('aiProcessing').style.display = 'none';
+  document.getElementById('dropZone').style.display = 'block';
+  alert('Could not extract PO: ' + msg + '\n\nYou can still fill in the form manually below.');
+}
+
+function resetDropZone() {
+  document.getElementById('dropZone').style.display = 'block';
+  document.getElementById('aiProcessing').style.display = 'none';
+  document.getElementById('aiResult').style.display = 'none';
+  document.getElementById('formFillBadge').style.display = 'none';
+  document.getElementById('fileInput').value = '';
+  clearConfidenceBadges();
+}
+
+function clearConfidenceBadges() {
+  ['fPoConf','fDateConf','fMemConf','fBuyerConf','fVendConf','fCatConf','fValConf','fShipConf','fNotesConf']
+    .forEach(id => { const el = document.getElementById(id); if(el) el.classList.remove('show'); });
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function fileToArrayBuffer(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+function fileToText(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsText(file);
+  });
+}
+
+function getMemberNames() { return MEMBERS.map(m => m.name); }
+function getVendorNames() { return VENDORS.map(v => v.name); }
+
+// ── PDF TEXT EXTRACTION via PDF.js ───────────────────────────────────────────
+async function extractFromPDF(file) {
+  document.getElementById('aiStatusText').textContent = 'Reading PDF…';
+  document.getElementById('aiStatusSub').textContent = 'Pulling text from all pages';
+
+  // Load PDF.js from CDN
+  if (!window.pdfjsLib) {
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+
+  const arrayBuffer = await fileToArrayBuffer(file);
+  const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+  let fullText = '';
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    fullText += content.items.map(item => item.str).join(' ') + '\n';
+  }
+
+  document.getElementById('aiStatusText').textContent = 'Matching fields…';
+  document.getElementById('aiStatusSub').textContent = 'Cross-referencing your 29 members and 49 vendors';
+
+  const result = parseTextIntoPO(fullText, file.name);
+  applyExtractedData(result, fullText.substring(0, 600));
+}
+
+// ── IMAGE EXTRACTION ─────────────────────────────────────────────────────────
+async function extractFromImage(file) {
+  // For images, read as data URL and use canvas OCR-style text extraction
+  // Since we can't call the API, we'll extract what we can and prompt manual review
+  document.getElementById('aiStatusText').textContent = 'Reading image…';
+  document.getElementById('aiStatusSub').textContent = 'Images require manual field entry — pre-filling what we can from filename';
+  await new Promise(r => setTimeout(r, 800));
+  const result = parseTextIntoPO(file.name, file.name);
+  result.confidence = 'low';
+  result.rawSummary = 'Image file — please verify all fields manually';
+  applyExtractedData(result, `Image file: ${file.name}\nPlease review and fill in all fields manually.`);
+}
+
+// ── SPREADSHEET / CSV EXTRACTION ─────────────────────────────────────────────
+async function extractFromSpreadsheet(file, ext) {
+  document.getElementById('aiStatusText').textContent = 'Parsing spreadsheet…';
+  let text = '';
+  if (ext === 'csv') {
+    text = await fileToText(file);
+  } else {
+    text = `Excel file: ${file.name}`;
+  }
+  const result = parseTextIntoPO(text, file.name);
+  applyExtractedData(result, text.substring(0, 600));
+}
+
+// ── SMART TEXT PARSER ─────────────────────────────────────────────────────────
+// Extracts PO fields from raw text using patterns common to EDI & distributor POs
+function parseTextIntoPO(text, filename) {
+  const t = text;
+  const tu = text.toUpperCase();
+
+  // Helper: parse a date string to YYYY-MM-DD, returns '' if invalid
+  function toISO(str) {
+    if (!str) return '';
+    // Handle two-digit year: 3/19/26 → 3/19/2026
+    const fixed = str.replace(/(\d{1,2}[\/\-]\d{1,2}[\/\-])(\d{2})$/, (_, a, y) => a + (parseInt(y) > 50 ? '19' : '20') + y);
+    try { const d = new Date(fixed); return isNaN(d) ? '' : d.toISOString().slice(0,10); }
+    catch(e) { return ''; }
+  }
+
+  // ── PO Number ──
+  let poNumber = '';
+  const poPatterns = [
+    /PO\s*#\s*\n?\s*([A-Z0-9\-]{4,20})/i,           // PO# on one line, value on next (Bomgaars style)
+    /P\.?O\.?\s*(?:#|No\.?|Number|Num)[\s:]*([A-Z0-9\-]{4,20})/i,
+    /Purchase\s+Order\s*(?:Number|#|No\.?)?[\s:]*([A-Z0-9\-]{4,20})/i,
+    /Order\s*(?:No\.?|Number|#)[\s:]*([A-Z0-9\-]{4,20})/i,
+    /\bPO[\s#:]+([A-Z0-9\-]{4,20})/i,
+  ];
+  for (const p of poPatterns) {
+    const m = t.match(p);
+    if (m) { poNumber = m[1].trim(); break; }
+  }
+
+  // ── Order Date (the date the PO was issued — NOT ship/arrival date) ──
+  // Priority: explicit "ORDER DATE" label first, then fallbacks
+  let date = '';
+  const orderDatePatterns = [
+    // Bomgaars: "ORDER DATE 3/19/2026" or "ORDER DATE\n3/19/2026"
+    /ORDER\s+DATE[\s:]*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
+    // Generic: "Order Date:", "PO Date:", "Date Issued:", "Date Ordered:"
+    /(?:PO|Issue[d]?|Order(?:ed)?)\s+Date[\s:]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
+    /Date\s+(?:Issued|Ordered|Created|of\s+Order)[\s:]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
+    // Labeled month-name dates: "Order Date: January 15, 2026"
+    /ORDER\s+DATE[\s:]+([A-Z]+ \d{1,2},?\s*\d{4})/i,
+    // Last resort: first date found anywhere that is NOT preceded by ship/arrive/cancel keywords
+    /(?<!(?:SHIP|ARRIV|CANCEL|DELIVER|REQUIRE|NEED)[^\n]{0,30})(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})/i,
+  ];
+  for (const p of orderDatePatterns) {
+    const m = t.match(p);
+    if (m) { const iso = toISO(m[1]); if (iso) { date = iso; break; } }
+  }
+
+  // ── Ship / Arrive-By Date ──
+  // Specifically catches Bomgaars "SHIP TO ARRIVE BY", plus other formats
+  let shipDate = '';
+  const shipPatterns = [
+    /SHIP\s+TO\s+ARRIVE\s+BY[\s:]*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
+    /ARRIVE\s+BY[\s:]*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
+    /(?:Ship|Required|Need\s+By|Cancel|Must\s+Ship|Delivery|Due)\s*(?:Date|By)?[\s:]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
+    /(?:Ship|Required|Delivery)\s+Date[\s:]+([A-Z]+ \d{1,2},?\s*\d{4})/i,
+  ];
+  for (const p of shipPatterns) {
+    const m = t.match(p);
+    if (m) { const iso = toISO(m[1]); if (iso) { shipDate = iso; break; } }
+  }
+
+  // ── Dollar Value ──
+  // Priority: NET AMOUNT > Grand Total > Order Total > largest $ value on page
+  let value = '';
+  const valuePatterns = [
+    /NET\s+AMOUNT[\s:$]*([0-9,]+\.\d{2})/i,
+    /(?:Grand\s+Total|Order\s+Total|Total\s+Amount|Amount\s+Due|TOTAL\s+ORDER)[\s:$]*([0-9,]+\.\d{2})/i,
+    /\$\s*([0-9,]+\.\d{2})/g,
+  ];
+  for (const p of valuePatterns) {
+    const allMatches = [...t.matchAll(new RegExp(p.source, 'gi'))];
+    if (allMatches.length) {
+      const amounts = allMatches.map(m => parseFloat(m[1].replace(/,/g,'')));
+      value = String(Math.max(...amounts));
+      break;
+    }
+  }
+
+  // ── Member matching ──
+  // Score each member name against the text — longer word matches score higher
+  let member = '';
+  let memberScore = 0;
+  for (const name of getMemberNames()) {
+    const words = name.split(/\s+/).filter(w => w.length > 3);
+    let score = 0;
+    for (const word of words) {
+      if (tu.includes(word.toUpperCase())) score += word.length; // weight by word length
+    }
+    if (tu.includes(name.toUpperCase())) score += 20;
+    if (score > memberScore) { memberScore = score; member = name; }
+  }
+  if (memberScore < 4) member = '';
+
+  // ── Vendor matching ──
+  let vendor = '';
+  let vendorScore = 0;
+  for (const name of getVendorNames()) {
+    // Also try matching common abbreviations (e.g. "AMTURF ENT" → "Amturf Enterprises")
+    const words = name.split(/[\s,\/]+/).filter(w => w.length > 3);
+    let score = 0;
+    for (const word of words) {
+      if (tu.includes(word.toUpperCase())) score += word.length;
+    }
+    if (tu.includes(name.toUpperCase())) score += 20;
+    if (score > vendorScore) { vendorScore = score; vendor = name; }
+  }
+  if (vendorScore < 4) vendor = '';
+
+  // ── Buyer Contact ──
+  let buyerContact = '';
+  const buyerPatterns = [
+    /(?:Buyer|Contact|Ordered\s+By|Prepared\s+By|Issued\s+By)[\s:]+([A-Z][a-z]+ [A-Z][a-z]+)/,
+    /(?:Attn|Attention)[\s.:]+([A-Z][a-z]+ [A-Z][a-z]+)/i,
+  ];
+  for (const p of buyerPatterns) {
+    const m = t.match(p);
+    if (m) { buyerContact = m[1].trim(); break; }
+  }
+
+  // ── Category inference from product description keywords ──
+  let category = 'Other';
+  const catKeywords = {
+    'Lawn & Garden': ['lawn','garden','mower','seed','fescue','fertilizer','sprinkler','hose','grass','plant','weed','mulch','outdoor','landscap','turf','sod','herbicide','pesticide'],
+    'Automotive':    ['auto','motor','oil','filter','battery','tire','vehicle','fuel','car','truck','wiper','antifreeze','lubric','coolant','brake'],
+    'Hardware':      ['hardware','bolt','screw','nail','fastener','drill','lumber','pipe','fitting','plumb','electric','wire','chain','lock','hinge'],
+    'Sporting Goods':['sport','hunt','fish','archery','gun','ammo','camp','hike','bow','reel','tackle','decoy','blind','trap','target'],
+    'Apparel':       ['apparel','boot','shoe','glove','shirt','jacket','hat','cap','pant','sock','wear','cloth','fleece','vest','overall'],
+    'Tools':         ['wrench','saw','hammer','grinder','level','torque','socket','driver','plier','cutter','sander','chisel'],
+  };
+  let catScore = 0;
+  for (const [cat, keywords] of Object.entries(catKeywords)) {
+    let score = keywords.filter(k => tu.includes(k.toUpperCase())).length;
+    if (score > catScore) { catScore = score; category = cat; }
+  }
+
+  // ── Notes — FOB terms, payment terms, routing, special instructions ──
+  let notes = '';
+  const noteMatches = [];
+  // Payment terms (NET 90 DAYS, etc.)
+  const payTerms = t.match(/(?:NET\s+\d+\s+DAYS?|NET\s+\d+|COD|PREPAID|DUE\s+ON\s+RECEIPT)/i);
+  if (payTerms) noteMatches.push(`Terms: ${payTerms[0].trim()}`);
+  // FOB
+  const fob = t.match(/FOB\s+[\w\s]+(?:COLLECT|PREPAID|ORIGIN|DESTINATION)?/i);
+  if (fob) noteMatches.push(fob[0].trim());
+  // Routing / scheduling instructions
+  const routing = t.match(/(?:CONTACT\s+FOR\s+ROUTING|ALL\s+\d\+?\s+PALLETS[^.]{0,100})/i);
+  if (routing) noteMatches.push(routing[0].trim().substring(0,100));
+  // Scheduling email
+  const schedEmail = t.match(/scheduling\S+@\S+/i);
+  if (schedEmail) noteMatches.push(`Scheduling: ${schedEmail[0]}`);
+  notes = noteMatches.join(' | ');
+
+  // ── Confidence score ──
+  const fieldsFound = [poNumber, date, member, vendor, value].filter(Boolean).length;
+  const confidence = fieldsFound >= 4 ? 'high' : fieldsFound >= 2 ? 'medium' : 'low';
+
+  return {
+    poNumber, date, member, buyerContact, vendor, category, value, shipDate, notes,
+    rawSummary: `Extracted from ${filename} — ${fieldsFound}/5 key fields found`,
+    confidence
+  };
+}
+
+// ── LOAD EXTERNAL SCRIPT HELPER ───────────────────────────────────────────────
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
+    const s = document.createElement('script');
+    s.src = src; s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+// ── APPLY EXTRACTED DATA TO FORM ──────────────────────────────────────────────
+function applyExtractedData(data, rawText) {
+  document.getElementById('aiProcessing').style.display = 'none';
+  document.getElementById('aiResult').style.display = 'block';
+  document.getElementById('aiRawText').textContent = rawText;
+
+  const confLabels = {
+    high:   '✦ High confidence — all key fields extracted',
+    medium: '◆ Medium confidence — review highlighted fields carefully',
+    low:    '◇ Low confidence — please verify all fields manually'
+  };
+  const confColors = { high:'#0F6E56', medium:'#7a4510', low:'#791F1F' };
+  const conf = (data.confidence||'medium').toLowerCase();
+  document.getElementById('aiConfidenceNote').textContent =
+    `${confLabels[conf]||confLabels.medium}${data.rawSummary ? ' · ' + data.rawSummary : ''}`;
+  document.getElementById('aiConfidenceNote').style.color = confColors[conf]||confColors.medium;
+  document.getElementById('formFillBadge').style.display = 'inline';
+
+  const setField = (id, value, confId) => {
+    if (!value) return;
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.value = value;
+    el.style.borderColor = 'var(--green)';
+    el.style.background = '#fafffe';
+    const badge = document.getElementById(confId);
+    if (badge) { badge.textContent = '✦ AI'; badge.classList.add('show'); }
+  };
+
+  const setSelect = (id, value, confId) => {
+    if (!value) return;
+    const el = document.getElementById(id);
+    if (!el) return;
+    const opts = [...el.options];
+    let match = opts.find(o => o.value === value || o.text === value);
+    if (!match) match = opts.find(o =>
+      o.text.toLowerCase().includes(value.toLowerCase()) ||
+      value.toLowerCase().includes(o.text.toLowerCase())
+    );
+    if (match) {
+      el.value = match.value || match.text;
+      el.style.borderColor = 'var(--green)';
+      el.style.background = '#fafffe';
+      const badge = document.getElementById(confId);
+      if (badge) { badge.textContent = '✦ AI'; badge.classList.add('show'); }
+    }
+  };
+
+  setField('fPo',    data.poNumber,     'fPoConf');
+  setField('fDate',  data.date,         'fDateConf');
+  setField('fBuyer', data.buyerContact, 'fBuyerConf');
+  setField('fVal',   data.value,        'fValConf');
+  setField('fShip',  data.shipDate,     'fShipConf');
+  setField('fNotes', data.notes,        'fNotesConf');
+  setSelect('fMemSel',  data.member,   'fMemConf');
+  setSelect('fVendSel', data.vendor,   'fVendConf');
+  setSelect('fCatSel',  data.category, 'fCatConf');
+
+  document.getElementById('fSrc').value = 'Email';
+  document.getElementById('fPo').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// ── END AI PO EXTRACTION ──────────────────────────────────────────────────────
+
+// Init
+populateFormSelects();
+populateVendorFilters();
+updateDashMetrics();
+renderRecent();
+renderMemberBars();
+buildDash();
+document.getElementById('fDate').value=new Date().toISOString().slice(0,10);
+</script>
+</body>
+</html>
