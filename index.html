@@ -491,7 +491,8 @@ var VENDORS=[
 {num:"1002458",n:"Tusk Brands LLC",contact:"Jacob Grant",mgr:"Ed Ensminger",status:"Active",plStatus:"Current",plEnd:"2030-07-01",coiStatus:"Current",coiEnd:"2027-01-21"},
 {num:"1002222",n:"U-C Coatings LLC",contact:"Richard Ahlstrom",mgr:"Ed Ensminger",status:"Active",plStatus:"Current",plEnd:"2027-01-01",coiStatus:"Current",coiEnd:"2026-11-26"},
 {num:"952925",n:"Wilmar Corporation",contact:"Chris Favro",mgr:"Ed Ensminger",status:"Active",plStatus:"Current",plEnd:"2026-09-01",coiStatus:"Current",coiEnd:"2026-03-31"},
-{num:"956017",n:"Winston Products LLC",contact:"Mark Moore",mgr:"Sheila Toombs",status:"Active",plStatus:"Current",plEnd:"2026-07-01",coiStatus:"Current",coiEnd:"2026-12-31"}
+{num:"956017",n:"Winston Products LLC",contact:"Mark Moore",mgr:"Sheila Toombs",status:"Active",plStatus:"Current",plEnd:"2026-07-01",coiStatus:"Current",coiEnd:"2026-12-31"},
+{num:"CS001",n:"Creekside Soils",contact:"",mgr:"",status:"Active",plStatus:"Current",plEnd:"2027-01-01",coiStatus:"Current",coiEnd:"2027-01-01"}
 ];
 
 // ── STORAGE ───────────────────────────────────────────────────────────────────
@@ -533,33 +534,45 @@ function matchVendorFull(tn,tu,raw){
   var searchIn=tn||tu;
   VENDORS.forEach(function(v){
     var s=0;
-    // Check each word of vendor name
-    v.n.split(/[\s,\/]+/).filter(function(w){return w.length>3;}).forEach(function(w){
-      if(searchIn.indexOf(w.toUpperCase())>=0)s+=w.length*2;
+    var words=v.n.split(/[\s,\/]+/).filter(function(w){return w.length>3;});
+    var wordHits=0;
+    words.forEach(function(w){
+      if(searchIn.indexOf(w.toUpperCase())>=0){s+=w.length*2;wordHits++;}
     });
     // Full name match
     if(searchIn.indexOf(v.n.toUpperCase())>=0)s+=30;
     // First word abbreviation match (e.g. AMTURF from "Amturf Enterprises LLC")
     var firstWord=v.n.split(/[\s,\/]+/)[0].toUpperCase();
-    if(firstWord.length>=4&&searchIn.indexOf(firstWord)>=0)s+=firstWord.length*2;
+    if(firstWord.length>=4&&searchIn.indexOf(firstWord)>=0){s+=firstWord.length*2;wordHits++;}
+    // REQUIRE at least one actual word hit to avoid false positives
+    if(wordHits===0)s=0;
     if(s>score){score=s;best=v.n;}
   });
 
-  // Special: detect "VENDOR_ABBR ENT/INC/LLC NUM" pattern on PO line
-  // e.g. "AMTURF ENT   1360" — extract first token and match to vendor
+  // Special: detect PO vendor line pattern
+  // Bomgaars format: "AMTURF ENT 1360" or "CREEKSIDE SOILS/TALL SAL 2845"
   if(raw){
-    var lineMatch=(raw||'').match(/\b([A-Z]{4,})\s+(?:ENT|INC|LLC|CORP|MFG|CO|DIST|DIST\.)\s+\d/i);
+    // Pattern: word(s) + optional /word(s) + number at end
+    var lineMatch=(raw||'').match(/\b([A-Z]{4,}(?:\s+[A-Z]{3,})?(?:\/[A-Z]{2,}(?:\s+[A-Z]{2,})?)?)\s+\d{3,}\b/i);
     if(lineMatch){
-      var abbr=lineMatch[1].toUpperCase();
+      var abbr=lineMatch[1].replace(/\/.*$/,'').trim().toUpperCase(); // take part before /
+      var abbrFull=lineMatch[1].trim().toUpperCase(); // full including /TALL SAL
       VENDORS.forEach(function(v){
-        var first=v.n.split(/[\s,\/]+/)[0].toUpperCase();
-        if(first.indexOf(abbr)>=0||abbr.indexOf(first.substring(0,Math.min(first.length,abbr.length)))>=0){
+        var vup=v.n.toUpperCase();
+        var firstWord=vup.split(/[\s,\/]+/)[0];
+        // Match first word of abbr to first word of vendor name
+        var abbrFirst=abbr.split(/\s+/)[0];
+        if(firstWord.indexOf(abbrFirst)>=0||abbrFirst.indexOf(firstWord.substring(0,Math.min(firstWord.length,6)))>=0){
           if(score<30){score=30;best=v.n;}
         }
+        // Also check if any word in the full abbr matches vendor name
+        abbrFull.split(/[\s\/]+/).forEach(function(w){
+          if(w.length>=4&&vup.indexOf(w)>=0&&score<30){score=28;best=v.n;}
+        });
       });
     }
   }
-  return score>4?best:'';
+  return score>6?best:'';
 }
 function updateStorageIndicator(){
   var kb=((localStorage.getItem(PO_KEY)||'').length*2/1024).toFixed(1);
@@ -665,53 +678,43 @@ function handleFiles(files){
 // Extract readable text from PDF binary using stream parsing
 function extractPDFText(arrayBuffer){
   try {
-    // Convert ArrayBuffer to string for regex parsing
     var bytes=new Uint8Array(arrayBuffer);
     var binary='';
-    // Process in chunks to avoid stack overflow on large files
     var chunkSize=8192;
     for(var i=0;i<bytes.length;i+=chunkSize){
       var chunk=bytes.subarray(i,Math.min(i+chunkSize,bytes.length));
       binary+=String.fromCharCode.apply(null,chunk);
     }
     var text='';
-    // Extract text from PDF content streams using multiple strategies
 
-    // Strategy 1: Extract text between BT (Begin Text) and ET (End Text) markers
-    var btMatches=binary.match(/BT[\s\S]{0,2000}?ET/g)||[];
-    btMatches.forEach(function(block){
-      // Extract Tj and TJ operators (text show operators)
-      var tjMatches=block.match(/\(([^)]*)\)\s*Tj/g)||[];
-      tjMatches.forEach(function(m){var t=m.match(/\(([^)]*)\)/);if(t)text+=decodeText(t[1])+' ';});
-      // TJ array format: [(text) spacing (text)] TJ
-      var tjArrMatches=block.match(/\[([^\]]*)\]\s*TJ/g)||[];
-      tjArrMatches.forEach(function(m){
-        var parts=m.match(/\(([^)]*)\)/g)||[];
-        parts.forEach(function(p){var t=p.match(/\(([^)]*)\)/);if(t)text+=decodeText(t[1]);});
-        text+=' ';
-      });
+    // Strategy 1: Extract ALL Tj and TJ operators from the entire binary
+    // (handles both large and small BT/ET blocks)
+    var allTjMatches=binary.match(/\(([^)]{0,200})\)\s*Tj/g)||[];
+    allTjMatches.forEach(function(m){
+      var t=m.match(/\(([^)]*)\)/);
+      if(t&&t[1].trim()){text+=decodeText(t[1])+'\n';}
+    });
+
+    // Strategy 2: TJ array format
+    var tjArrMatches=binary.match(/\[([^\]]{0,500})\]\s*TJ/g)||[];
+    tjArrMatches.forEach(function(m){
+      var parts=m.match(/\(([^)]*)\)/g)||[];
+      parts.forEach(function(p){var t=p.match(/\(([^)]*)\)/);if(t&&t[1].trim())text+=decodeText(t[1]);});
       text+='\n';
     });
 
-    // Strategy 2: If strategy 1 got little text, try raw string extraction
-    if(text.trim().length<50){
-      var rawStrings=binary.match(/\(([A-Za-z0-9\s\/\$\.\,\-\#\@\*]{3,})\)/g)||[];
-      rawStrings.forEach(function(s){var m=s.match(/\(([^)]+)\)/);if(m)text+=m[1]+' ';});
+    // Strategy 3: ASCII runs for anything missed
+    if(text.trim().length<100){
+      var asciiRuns=binary.match(/[\x20-\x7E]{8,}/g)||[];
+      asciiRuns.forEach(function(run){
+        if(/[A-Za-z]{3,}/.test(run)&&run.indexOf('stream')<0&&run.indexOf('endstream')<0){
+          text+=run+'\n';
+        }
+      });
     }
 
-    // Strategy 3: Also scan for plain ASCII text runs (works for many EDI PDFs)
-    var asciiRuns=binary.match(/[\x20-\x7E]{8,}/g)||[];
-    asciiRuns.forEach(function(run){
-      // Only keep runs that look like real content (contain letters and spaces)
-      if(/[A-Za-z]{3,}/.test(run)&&run.indexOf('stream')<0&&run.indexOf('endstream')<0){
-        text+=run+'\n';
-      }
-    });
-
     return text.length>20?text:'';
-  } catch(err){
-    return '';
-  }
+  } catch(err){return '';}
 }
 
 function decodeText(s){
@@ -864,7 +867,7 @@ function parsePO(text,filename){
 
   // ── CATEGORY ─────────────────────────────────────────────────────────────
   var category='Other',catScore=0;
-  var catKws={'Lawn & Garden':['LAWN','GARDEN','MOWER','SEED','FESCUE','FERTILIZER','SPRINKLER','HOSE','GRASS','TURF','SOD','HERBICIDE'],'Automotive':['AUTO','MOTOR','OIL','FILTER','BATTERY','TIRE','VEHICLE','FUEL','WIPER','ANTIFREEZE','COOLANT','BRAKE'],'Hardware':['HARDWARE','BOLT','SCREW','NAIL','FASTENER','DRILL','LUMBER','PIPE','FITTING','PLUMB','ELECTRIC','CHAIN'],'Sporting Goods':['SPORT','HUNT','FISH','ARCHERY','GUN','AMMO','CAMP','HIKE','BOW','REEL','TACKLE','DECOY'],'Apparel':['APPAREL','BOOT','SHOE','GLOVE','SHIRT','JACKET','HAT','CAP','PANT','SOCK','CLOTH','FLEECE'],'Tools':['WRENCH','SAW','HAMMER','GRINDER','LEVEL','TORQUE','SOCKET','DRIVER','PLIER','SANDER']};
+  var catKws={'Lawn & Garden':['LAWN','GARDEN','MOWER','SEED','FESCUE','FERTILIZER','SPRINKLER','HOSE','GRASS','TURF','SOD','HERBICIDE','COMPOST','MANURE','MULCH','SOIL','POTTING','PLANTING','WEED','INSECT','PEST','FLOWER','VEGETA','IRRIGATION'],'Automotive':['MOTOR OIL','OIL FILTER','AIR FILTER','BATTERY','WIPER BLADE','ANTIFREEZE','COOLANT','BRAKE PAD','BRAKE FLUID','FUEL ADDITIVE','AUTO PART'],'Hardware':['HARDWARE','BOLT','SCREW','NAIL','FASTENER','DRILL BIT','LUMBER','PIPE','FITTING','PLUMB','ELECTRIC','CHAIN','LOCK','HINGE','ROPE','CAULK'],'Sporting Goods':['SPORT','HUNT','FISH','ARCHERY','AMMO','CAMP','HIKE','BOW','REEL','TACKLE','DECOY','BLIND','TARGET'],'Apparel':['APPAREL','BOOT','SHOE','GLOVE','SHIRT','JACKET','HAT','CAP','PANT','SOCK','CLOTH','FLEECE','VEST','OVERALL'],'Tools':['WRENCH','SAW','HAMMER','GRINDER','TORQUE','SOCKET SET','DRIVER BIT','PLIER','SANDER','DRILL PRESS']};
   Object.keys(catKws).forEach(function(cat){var sc=catKws[cat].filter(function(k){return tu.indexOf(k)>=0;}).length;if(sc>catScore){catScore=sc;category=cat;}});
 
   // ── NOTES ─────────────────────────────────────────────────────────────────
