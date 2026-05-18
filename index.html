@@ -528,30 +528,36 @@ function matchVendor(raw){
   VENDORS.forEach(function(v){var s=0;v.n.split(/[\s,\/]+/).filter(function(w){return w.length>3;}).forEach(function(w){if(tu.indexOf(w.toUpperCase())>=0)s+=w.length;});if(tu.indexOf(v.n.toUpperCase())>=0)s+=20;if(s>score){score=s;best=v.n;}});
   return score>4?best:'';
 }
-function matchVendorFull(tn,tu){
-  // First try direct name matching on normalized text
+function matchVendorFull(tn,tu,raw){
   var best='',score=0;
+  var searchIn=tn||tu;
   VENDORS.forEach(function(v){
     var s=0;
-    var words=v.n.split(/[\s,\/]+/).filter(function(w){return w.length>3;});
-    words.forEach(function(w){if(tn.indexOf(w.toUpperCase())>=0)s+=w.length*2;});
-    if(tn.indexOf(v.n.toUpperCase())>=0)s+=30;
-    // Also check first word abbreviation — e.g. "AMTURF" matches "Amturf Enterprises LLC"
-    var first=v.n.split(/[\s,\/]+/)[0].toUpperCase();
-    if(first.length>=4&&(tn.indexOf(first)>=0||tu.indexOf(first)>=0))s+=first.length*2;
+    // Check each word of vendor name
+    v.n.split(/[\s,\/]+/).filter(function(w){return w.length>3;}).forEach(function(w){
+      if(searchIn.indexOf(w.toUpperCase())>=0)s+=w.length*2;
+    });
+    // Full name match
+    if(searchIn.indexOf(v.n.toUpperCase())>=0)s+=30;
+    // First word abbreviation match (e.g. AMTURF from "Amturf Enterprises LLC")
+    var firstWord=v.n.split(/[\s,\/]+/)[0].toUpperCase();
+    if(firstWord.length>=4&&searchIn.indexOf(firstWord)>=0)s+=firstWord.length*2;
     if(s>score){score=s;best=v.n;}
   });
-  // Extra: try to find vendor from "PO# XXXXX  VENDOR_ABBR  NUM" line pattern
-  // Bomgaars format: "287298AR AMTURF ENT 1360"
-  var poLine=tn.match(/\b[A-Z0-9]{6,10}\s+([A-Z]{4,}(?:\s+[A-Z]{2,})?)\s+\d/);
-  if(poLine){
-    var abbr=poLine[1].trim();
-    VENDORS.forEach(function(v){
-      var first=v.n.split(/[\s,\/]+/)[0].toUpperCase();
-      if(abbr.indexOf(first)>=0||first.indexOf(abbr.split(' ')[0])>=0){
-        if(score<25){score=25;best=v.n;}
-      }
-    });
+
+  // Special: detect "VENDOR_ABBR ENT/INC/LLC NUM" pattern on PO line
+  // e.g. "AMTURF ENT   1360" — extract first token and match to vendor
+  if(raw){
+    var lineMatch=(raw||'').match(/\b([A-Z]{4,})\s+(?:ENT|INC|LLC|CORP|MFG|CO|DIST|DIST\.)\s+\d/i);
+    if(lineMatch){
+      var abbr=lineMatch[1].toUpperCase();
+      VENDORS.forEach(function(v){
+        var first=v.n.split(/[\s,\/]+/)[0].toUpperCase();
+        if(first.indexOf(abbr)>=0||abbr.indexOf(first.substring(0,Math.min(first.length,abbr.length)))>=0){
+          if(score<30){score=30;best=v.n;}
+        }
+      });
+    }
   }
   return score>4?best:'';
 }
@@ -756,70 +762,112 @@ function clearQueue(){G('drop-zone').style.display='block';G('proc-bar').style.d
 // ── PO TEXT PARSER (improved date logic) ─────────────────────────────────────
 function parsePO(text,filename){
   var t=text,tu=text.toUpperCase();
-  // Normalize newlines/whitespace in the text for label matching
-  var tn=tu.replace(/[\r\n]+/g,' ').replace(/\s{2,}/g,' ');
+  // Normalize: collapse whitespace/newlines for label searching
+  var tn=tu.replace(/[\r\n\t]+/g,' ').replace(/\s{2,}/g,' ');
 
-  // Label-based positional date extraction — search BOTH original and normalized
-  var ORDER_LBLS=['ORDER DATE','ORDER\nDATE','PO DATE','DATE OF ORDER','DATE ISSUED','DATE ORDERED','CREATED DATE'];
-  var SHIP_LBLS=['SHIP TO ARRIVE BY','ARRIVE BY\nSHIP TO','ARRIVE BY DATE','ARRIVE BY SHIP TO','ARRIVE BY','SHIP TO ARRIVE','REQUIRED SHIP DATE','MUST SHIP BY','NEED BY DATE','DELIVERY DATE','REQUIRED DATE'];
-  var labels=[];
-  // Search in both raw uppercase AND space-normalized version
-  [tu, tn].forEach(function(src){
-    ORDER_LBLS.forEach(function(lbl){
-      var norm=lbl.replace(/[\r\n]+/g,' ');
-      var i=0,idx;
-      while((idx=src.indexOf(norm,i))!==-1){labels.push({type:'order',end:idx+norm.length,lbl:norm});i=idx+1;}
-    });
-    SHIP_LBLS.forEach(function(lbl){
-      var norm=lbl.replace(/[\r\n]+/g,' ');
-      var i=0,idx;
-      while((idx=src.indexOf(norm,i))!==-1){labels.push({type:'ship',end:idx+norm.length,lbl:norm});i=idx+1;}
-    });
-  });
-  labels.sort(function(a,b){return a.end-b.end;});
+  // ── DATE EXTRACTION ──────────────────────────────────────────────────────
+  // Bomgaars PDF stores dates in this order in the stream:
+  // "3/19/2026 PAGE 1 of 1" (order date embedded in page header)
+  // "3/25/2026" (ship date — appears BEFORE its "SHIP TO / ARRIVE BY" labels)
+  // "ORDER" "DATE" (labels come after)
+  // Strategy: find ALL dates, then classify by surrounding context
 
-  // Find all dates in both versions
   var drx=/(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/g,dm,allDates=[];
-  while((dm=drx.exec(tn))!==null){var iso=toISO(dm[1]);if(iso)allDates.push({iso:iso,idx:dm.index});}
-  // Also search raw
-  var drx2=/(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/g,dm2;
-  while((dm2=drx2.exec(tu))!==null){var iso2=toISO(dm2[1]);if(iso2&&!allDates.some(function(d){return d.iso===iso2;}))allDates.push({iso:iso2,idx:dm2.index});}
+  var searchIn=[tu,tn];
+  searchIn.forEach(function(src){
+    var rx=/(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/g,m;
+    while((m=rx.exec(src))!==null){
+      var iso=toISO(m[1]);
+      if(iso&&!allDates.some(function(d){return d.iso===iso;})){
+        allDates.push({iso:iso,idx:m.index,raw:m[1]});
+      }
+    }
+  });
   allDates.sort(function(a,b){return a.idx-b.idx;});
 
-  var tagged=allDates.map(function(d){
-    var cands=labels.filter(function(l){return l.end<=d.idx&&d.idx-l.end<=80;});
-    if(!cands.length)return{iso:d.iso,type:'unknown'};
-    var best=cands.reduce(function(a,b){return(d.idx-a.end)<=(d.idx-b.end)?a:b;});
-    return{iso:d.iso,type:best.type};
-  });
-  var orderDates=tagged.filter(function(d){return d.type==='order';});
-  var shipDates=tagged.filter(function(d){return d.type==='ship';});
-  var date=orderDates.length?orderDates[0].iso:'';
-  var shipDate=shipDates.length?shipDates[0].iso:'';
-  if(!date&&!shipDate&&allDates.length){date=allDates[0].iso;if(allDates.length>1)shipDate=allDates[1].iso;}
+  var date='',shipDate='';
+
+  // Method 1: Look for "ORDER DATE" label then date nearby (within 120 chars)
+  var orderLbls=['ORDER DATE','ORDER\nDATE','ORDER  DATE'];
+  for(var oi=0;oi<orderLbls.length;oi++){
+    var lbl=orderLbls[oi].replace(/\n/,' ');
+    var idx=tn.indexOf(lbl);
+    if(idx>=0){
+      // Check 120 chars BEFORE and AFTER the label
+      var window=tn.substring(Math.max(0,idx-30),idx+120);
+      var dm2=window.match(/(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/);
+      if(dm2){date=toISO(dm2[1]);break;}
+    }
+  }
+  // Also check: Bomgaars embeds order date in "3/19/2026        PAGE 1 of 1"
+  if(!date){
+    var pageMatch=tn.match(/(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})\s+PAGE\s+\d/i);
+    if(pageMatch)date=toISO(pageMatch[1]);
+  }
+
+  // Method 2: Ship date — look for date nearest to ship/arrive labels
+  // In Bomgaars, order is: [order_date] ... [ship_date] SHIP TO ARRIVE BY
+  // So ship date appears just BEFORE "SHIP TO" in the stream
+  var shipLbls=['SHIP TO ARRIVE BY','ARRIVE BY','SHIP TO','SHIP DATE','REQUIRED DATE','DELIVERY DATE','MUST SHIP BY','NEED BY'];
+  for(var si=0;si<shipLbls.length&&!shipDate;si++){
+    var slbl=shipLbls[si];
+    var sidx=tn.indexOf(slbl);
+    if(sidx<0)continue;
+    // Look in a 100-char window before the label for a date that isn't the order date
+    var windowBefore=tn.substring(Math.max(0,sidx-100),sidx);
+    var dateMatches=[...windowBefore.matchAll(/(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/g)];
+    // Take the LAST date in this window (closest to the label)
+    if(dateMatches.length){
+      var candidate=toISO(dateMatches[dateMatches.length-1][1]);
+      if(candidate&&candidate!==date){shipDate=candidate;break;}
+    }
+    // Also check 60 chars after the label
+    var windowAfter=tn.substring(sidx+slbl.length,sidx+slbl.length+60);
+    var afterMatch=windowAfter.match(/(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/);
+    if(afterMatch){var c2=toISO(afterMatch[1]);if(c2&&c2!==date){shipDate=c2;break;}}
+  }
+
+  // Method 3: Fallback — if we have 2 dates, first = order, second = ship
+  if(allDates.length>=2){
+    if(!date)date=allDates[0].iso;
+    if(!shipDate){
+      var other=allDates.find(function(d){return d.iso!==date;});
+      if(other)shipDate=other.iso;
+    }
+  } else if(allDates.length===1&&!date){
+    date=allDates[0].iso;
+  }
   if(date&&shipDate&&date===shipDate)shipDate='';
 
-  // PO Number
-  var poNumber='',poPatterns=[/PURCHASE\s+ORDER\s+NUMBER[\s\S]{0,50}?\b([A-Z0-9]{5,20})\b/i,/PO\s*#[\s:]*[\r\n]?\s*([A-Z0-9\-]{4,20})/i,/P\.?O\.?\s*(?:#|No\.?|Number)[\s:]*([A-Z0-9\-]{4,20})/i,/\bPO[\s#:]+([A-Z0-9\-]{4,20})/i];
+  // ── PO NUMBER ─────────────────────────────────────────────────────────────
+  var poNumber='',poPatterns=[
+    /PURCHASE\s+ORDER\s+NUMBER[\s\S]{0,50}?\b([A-Z0-9]{5,20})\b/i,
+    /PO\s*#[\s:]*[\r\n]?\s*([A-Z0-9\-]{4,20})/i,
+    /P\.?O\.?\s*(?:#|No\.?|Number)[\s:]*([A-Z0-9\-]{4,20})/i,
+    /\bPO[\s#:]+([A-Z0-9\-]{4,20})/i
+  ];
   for(var pi=0;pi<poPatterns.length;pi++){var pm=t.match(poPatterns[pi]);if(pm){poNumber=pm[1].trim();break;}}
 
-  // Value
-  var value='',vPatterns=[/NET\s+AMOUNT[\s:$]*([0-9,]+\.\d{2})/i,/(?:Grand\s+Total|Order\s+Total|Total\s+Amount|Amount\s+Due)[\s:$]*([0-9,]+\.\d{2})/i];
+  // ── VALUE ─────────────────────────────────────────────────────────────────
+  var value='',vPatterns=[
+    /NET\s+AMOUNT[\s:$]*([0-9,]+\.\d{2})/i,
+    /(?:Grand\s+Total|Order\s+Total|Total\s+Amount|Amount\s+Due)[\s:$]*([0-9,]+\.\d{2})/i
+  ];
   for(var vi=0;vi<vPatterns.length;vi++){var vm=t.match(vPatterns[vi]);if(vm){value=String(parseFloat(vm[1].replace(/,/g,'')));break;}}
   if(!value){var ams=[...t.matchAll(/\$\s*([0-9,]+\.\d{2})/g)];if(ams.length)value=String(Math.max.apply(null,ams.map(function(m){return parseFloat(m[1].replace(/,/g,''));})));}
 
-  // Member matching — search normalized text
+  // ── MEMBER ────────────────────────────────────────────────────────────────
   var member=matchMember(tn)||matchMember(tu);
 
-  // Vendor matching — improved: also check abbreviated names from PO line (e.g. "AMTURF ENT")
-  var vendor=matchVendorFull(tn,tu);
+  // ── VENDOR — improved to handle abbreviations like "AMTURF ENT" ──────────
+  var vendor=matchVendorFull(tn,tu,t);
 
-  // Category
+  // ── CATEGORY ─────────────────────────────────────────────────────────────
   var category='Other',catScore=0;
   var catKws={'Lawn & Garden':['LAWN','GARDEN','MOWER','SEED','FESCUE','FERTILIZER','SPRINKLER','HOSE','GRASS','TURF','SOD','HERBICIDE'],'Automotive':['AUTO','MOTOR','OIL','FILTER','BATTERY','TIRE','VEHICLE','FUEL','WIPER','ANTIFREEZE','COOLANT','BRAKE'],'Hardware':['HARDWARE','BOLT','SCREW','NAIL','FASTENER','DRILL','LUMBER','PIPE','FITTING','PLUMB','ELECTRIC','CHAIN'],'Sporting Goods':['SPORT','HUNT','FISH','ARCHERY','GUN','AMMO','CAMP','HIKE','BOW','REEL','TACKLE','DECOY'],'Apparel':['APPAREL','BOOT','SHOE','GLOVE','SHIRT','JACKET','HAT','CAP','PANT','SOCK','CLOTH','FLEECE'],'Tools':['WRENCH','SAW','HAMMER','GRINDER','LEVEL','TORQUE','SOCKET','DRIVER','PLIER','SANDER']};
   Object.keys(catKws).forEach(function(cat){var sc=catKws[cat].filter(function(k){return tu.indexOf(k)>=0;}).length;if(sc>catScore){catScore=sc;category=cat;}});
 
-  // Notes
+  // ── NOTES ─────────────────────────────────────────────────────────────────
   var noteMatches=[];
   var pt=t.match(/(?:NET\s+\d+\s+DAYS?|NET\s+\d+|COD|PREPAID)/i);if(pt)noteMatches.push('Terms: '+pt[0].trim());
   var pf=t.match(/FOB\s+(?:ORIGIN|DESTINATION|PREPAID|COLLECT)[^\n]*/i);if(pf)noteMatches.push(pf[0].trim().substring(0,60));
