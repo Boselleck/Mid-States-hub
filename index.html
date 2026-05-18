@@ -639,12 +639,78 @@ function handleFiles(files){
   G('drop-zone').style.display='none';G('proc-bar').style.display='block';G('queue-wrap').style.display='none';
   importQueue=[];var done=0;
   pdfs.forEach(function(file){
+    // Use ArrayBuffer to properly extract text from PDF binary streams
     var reader=new FileReader();
-    reader.onload=function(e){importQueue.push({text:e.target.result||'',fname:file.name,ext:parsePO(e.target.result||'',file.name)});done++;G('proc-sub').textContent=done+' of '+pdfs.length+' processed';if(done===pdfs.length)showQueue();};
-    reader.onerror=function(){importQueue.push({text:'',fname:file.name,ext:parsePO('',file.name)});done++;if(done===pdfs.length)showQueue();};
-    reader.readAsText(file);
+    reader.onload=function(e){
+      var text=extractPDFText(e.target.result);
+      importQueue.push({text:text,fname:file.name,ext:parsePO(text,file.name)});
+      done++;G('proc-sub').textContent=done+' of '+pdfs.length+' processed';
+      if(done===pdfs.length)showQueue();
+    };
+    reader.onerror=function(){
+      importQueue.push({text:'',fname:file.name,ext:parsePO('',file.name)});
+      done++;if(done===pdfs.length)showQueue();
+    };
+    reader.readAsArrayBuffer(file);
   });
   G('proc-txt').textContent='Reading '+pdfs.length+' PDF'+(pdfs.length>1?'s':'')+'...';
+}
+
+// Extract readable text from PDF binary using stream parsing
+function extractPDFText(arrayBuffer){
+  try {
+    // Convert ArrayBuffer to string for regex parsing
+    var bytes=new Uint8Array(arrayBuffer);
+    var binary='';
+    // Process in chunks to avoid stack overflow on large files
+    var chunkSize=8192;
+    for(var i=0;i<bytes.length;i+=chunkSize){
+      var chunk=bytes.subarray(i,Math.min(i+chunkSize,bytes.length));
+      binary+=String.fromCharCode.apply(null,chunk);
+    }
+    var text='';
+    // Extract text from PDF content streams using multiple strategies
+
+    // Strategy 1: Extract text between BT (Begin Text) and ET (End Text) markers
+    var btMatches=binary.match(/BT[\s\S]{0,2000}?ET/g)||[];
+    btMatches.forEach(function(block){
+      // Extract Tj and TJ operators (text show operators)
+      var tjMatches=block.match(/\(([^)]*)\)\s*Tj/g)||[];
+      tjMatches.forEach(function(m){var t=m.match(/\(([^)]*)\)/);if(t)text+=decodeText(t[1])+' ';});
+      // TJ array format: [(text) spacing (text)] TJ
+      var tjArrMatches=block.match(/\[([^\]]*)\]\s*TJ/g)||[];
+      tjArrMatches.forEach(function(m){
+        var parts=m.match(/\(([^)]*)\)/g)||[];
+        parts.forEach(function(p){var t=p.match(/\(([^)]*)\)/);if(t)text+=decodeText(t[1]);});
+        text+=' ';
+      });
+      text+='\n';
+    });
+
+    // Strategy 2: If strategy 1 got little text, try raw string extraction
+    if(text.trim().length<50){
+      var rawStrings=binary.match(/\(([A-Za-z0-9\s\/\$\.\,\-\#\@\*]{3,})\)/g)||[];
+      rawStrings.forEach(function(s){var m=s.match(/\(([^)]+)\)/);if(m)text+=m[1]+' ';});
+    }
+
+    // Strategy 3: Also scan for plain ASCII text runs (works for many EDI PDFs)
+    var asciiRuns=binary.match(/[\x20-\x7E]{8,}/g)||[];
+    asciiRuns.forEach(function(run){
+      // Only keep runs that look like real content (contain letters and spaces)
+      if(/[A-Za-z]{3,}/.test(run)&&run.indexOf('stream')<0&&run.indexOf('endstream')<0){
+        text+=run+'\n';
+      }
+    });
+
+    return text.length>20?text:'';
+  } catch(err){
+    return '';
+  }
+}
+
+function decodeText(s){
+  // Handle basic PDF escape sequences
+  return s.replace(/\\n/g,'\n').replace(/\\r/g,'\r').replace(/\\t/g,'\t').replace(/\\\\/g,'\\').replace(/\\\(/g,'(').replace(/\\\)/g,')');
 }
 function showQueue(){
   G('proc-bar').style.display='none';G('queue-wrap').style.display='block';
@@ -661,7 +727,7 @@ function showQueue(){
       +'<div class="q-fields">'
       +'<div class="q-field"><label>PO Number</label><input id="qi-po-'+i+'" value="'+(e.poNumber||'')+'" placeholder="PO #"></div>'
       +'<div class="q-field"><label>Order Date</label><input type="date" id="qi-date-'+i+'" value="'+(e.date||new Date().toISOString().slice(0,10))+'"></div>'
-      +'<div class="q-field"><label>Ship / Arrive By</label><input type="date" id="qi-ship-'+i+'" value="'+(e.shipDate||'')+'"></div>'
+      +'<div class="q-field"><label>Ship / Arrive By '+(e.shipDate?'✓':'⚠ fill in')+'</label><input type="date" id="qi-ship-'+i+'" value="'+(e.shipDate||'')+'" style="'+(e.shipDate?'':'border-color:#BA7517;background:#fffdf0')+'">'+'</div>'
       +'<div class="q-field"><label>PO Value ($)</label><input id="qi-val-'+i+'" value="'+(e.value||'')+'" placeholder="0.00"></div>'
       +'<div class="q-field"><label>Member</label><select id="qi-mem-'+i+'"><option value="">Select...</option>'+mOpts+'</select></div>'
       +'<div class="q-field"><label>Vendor</label><select id="qi-vend-'+i+'"><option value="">Select...</option>'+vOpts+'</select></div>'
