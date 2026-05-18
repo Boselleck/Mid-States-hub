@@ -687,13 +687,27 @@ function extractPDFText(arrayBuffer){
     }
     var text='';
 
-    // Strategy 1: Extract ALL Tj and TJ operators from the entire binary
-    // (handles both large and small BT/ET blocks)
-    var allTjMatches=binary.match(/\(([^)]{0,200})\)\s*Tj/g)||[];
-    allTjMatches.forEach(function(m){
-      var t=m.match(/\(([^)]*)\)/);
-      if(t&&t[1].trim()){text+=decodeText(t[1])+'\n';}
-    });
+    // Strategy 1: Extract ALL Tj operators, then smart-join single-char sequences
+    // Some PDFs (Big R, etc.) output each character as its own (X) Tj call
+    var allTjRaw=binary.match(/\(([^)]{0,200})\)\s*Tj/g)||[];
+    var tjValues=allTjRaw.map(function(m){var t=m.match(/\(([^)]*)\)/);return t?decodeText(t[1]):'';}).filter(function(v){return v.length>0;});
+    // Concatenate runs of single characters into words/lines
+    var idx=0;
+    while(idx<tjValues.length){
+      var v=tjValues[idx];
+      if(v.length===1){
+        // Accumulate single chars until we hit a multi-char token or end
+        var word=v;
+        while(idx+1<tjValues.length&&tjValues[idx+1].length<=2){
+          idx++;
+          word+=tjValues[idx];
+        }
+        text+=word+'\n';
+      } else {
+        text+=v+'\n';
+      }
+      idx++;
+    }
 
     // Strategy 2: TJ array format
     var tjArrMatches=binary.match(/\[([^\]]{0,500})\]\s*TJ/g)||[];
@@ -703,13 +717,11 @@ function extractPDFText(arrayBuffer){
       text+='\n';
     });
 
-    // Strategy 3: ASCII runs for anything missed
-    if(text.trim().length<100){
+    // Strategy 3: ASCII fallback for minimal-text PDFs
+    if(text.trim().length<50){
       var asciiRuns=binary.match(/[\x20-\x7E]{8,}/g)||[];
       asciiRuns.forEach(function(run){
-        if(/[A-Za-z]{3,}/.test(run)&&run.indexOf('stream')<0&&run.indexOf('endstream')<0){
-          text+=run+'\n';
-        }
+        if(/[A-Za-z]{3,}/.test(run)&&run.indexOf('stream')<0&&run.indexOf('endstream')<0)text+=run+'\n';
       });
     }
 
@@ -790,8 +802,8 @@ function parsePO(text,filename){
 
   var date='',shipDate='';
 
-  // Method 1: Look for "ORDER DATE" label then date nearby (within 120 chars)
-  var orderLbls=['ORDER DATE','ORDER\nDATE','ORDER  DATE'];
+  // Method 1: Look for "ORDER DATE" or "Order Date:" label
+  var orderLbls=['ORDER DATE','ORDER\nDATE','ORDER  DATE','Order Date:','Order Date :'];
   for(var oi=0;oi<orderLbls.length;oi++){
     var lbl=orderLbls[oi].replace(/\n/,' ');
     var idx=tn.indexOf(lbl);
@@ -809,9 +821,8 @@ function parsePO(text,filename){
   }
 
   // Method 2: Ship date — look for date nearest to ship/arrive labels
-  // In Bomgaars, order is: [order_date] ... [ship_date] SHIP TO ARRIVE BY
-  // So ship date appears just BEFORE "SHIP TO" in the stream
-  var shipLbls=['SHIP TO ARRIVE BY','ARRIVE BY','SHIP TO','SHIP DATE','REQUIRED DATE','DELIVERY DATE','MUST SHIP BY','NEED BY'];
+  // Also handles Big R "Date Due:" format
+  var shipLbls=['SHIP TO ARRIVE BY','ARRIVE BY','Date Due :','Date Due:','DATE DUE','SHIP TO','SHIP DATE','REQUIRED DATE','DELIVERY DATE','MUST SHIP BY','NEED BY'];
   for(var si=0;si<shipLbls.length&&!shipDate;si++){
     var slbl=shipLbls[si];
     var sidx=tn.indexOf(slbl);
@@ -845,6 +856,8 @@ function parsePO(text,filename){
   // ── PO NUMBER ─────────────────────────────────────────────────────────────
   var poNumber='',poPatterns=[
     /PURCHASE\s+ORDER\s+NUMBER[\s\S]{0,50}?\b([A-Z0-9]{5,20})\b/i,
+    /P\.O\.\s*#:\s*(\d{6,12})/i,           // Big R format: "P.O. #: 84786099"
+    /Alt\.\s*PO\s*#\s*:\s*(\d{6,12})/i,    // Big R alt PO
     /PO\s*#[\s:]*[\r\n]?\s*([A-Z0-9\-]{4,20})/i,
     /P\.?O\.?\s*(?:#|No\.?|Number)[\s:]*([A-Z0-9\-]{4,20})/i,
     /\bPO[\s#:]+([A-Z0-9\-]{4,20})/i
@@ -854,7 +867,9 @@ function parsePO(text,filename){
   // ── VALUE ─────────────────────────────────────────────────────────────────
   var value='',vPatterns=[
     /NET\s+AMOUNT[\s:$]*([0-9,]+\.\d{2})/i,
-    /(?:Grand\s+Total|Order\s+Total|Total\s+Amount|Amount\s+Due)[\s:$]*([0-9,]+\.\d{2})/i
+    /TOTAL\s+P\.O\.[\s:$]*([0-9,]+\.\d{2})/i,   // Big R format
+    /TOTAL\s+P\.O\.\s+([0-9,]+\.\d{2})/i,
+    /(?:Grand\s+Total|Order\s+Total|Total\s+Amount|Amount\s+Due|TOTAL\s+COST)[\s:$]*([0-9,]+\.\d{2})/i
   ];
   for(var vi=0;vi<vPatterns.length;vi++){var vm=t.match(vPatterns[vi]);if(vm){value=String(parseFloat(vm[1].replace(/,/g,'')));break;}}
   if(!value){var ams=[...t.matchAll(/\$\s*([0-9,]+\.\d{2})/g)];if(ams.length)value=String(Math.max.apply(null,ams.map(function(m){return parseFloat(m[1].replace(/,/g,''));})));}
@@ -867,7 +882,7 @@ function parsePO(text,filename){
 
   // ── CATEGORY ─────────────────────────────────────────────────────────────
   var category='Other',catScore=0;
-  var catKws={'Lawn & Garden':['LAWN','GARDEN','MOWER','SEED','FESCUE','FERTILIZER','SPRINKLER','HOSE','GRASS','TURF','SOD','HERBICIDE','COMPOST','MANURE','MULCH','SOIL','POTTING','PLANTING','WEED','INSECT','PEST','FLOWER','VEGETA','IRRIGATION'],'Automotive':['MOTOR OIL','OIL FILTER','AIR FILTER','BATTERY','WIPER BLADE','ANTIFREEZE','COOLANT','BRAKE PAD','BRAKE FLUID','FUEL ADDITIVE','AUTO PART'],'Hardware':['HARDWARE','BOLT','SCREW','NAIL','FASTENER','DRILL BIT','LUMBER','PIPE','FITTING','PLUMB','ELECTRIC','CHAIN','LOCK','HINGE','ROPE','CAULK'],'Sporting Goods':['SPORT','HUNT','FISH','ARCHERY','AMMO','CAMP','HIKE','BOW','REEL','TACKLE','DECOY','BLIND','TARGET'],'Apparel':['APPAREL','BOOT','SHOE','GLOVE','SHIRT','JACKET','HAT','CAP','PANT','SOCK','CLOTH','FLEECE','VEST','OVERALL'],'Tools':['WRENCH','SAW','HAMMER','GRINDER','TORQUE','SOCKET SET','DRIVER BIT','PLIER','SANDER','DRILL PRESS']};
+  var catKws={'Lawn & Garden':['LAWN','GARDEN','MOWER','SEED','FESCUE','FERTILIZER','SPRINKLER','HOSE','GRASS','TURF','SOD','HERBICIDE','COMPOST','MANURE','MULCH','SOIL','POTTING','PLANTING','WEED','INSECT','PEST','FLOWER','VEGETA','IRRIGATION'],'Automotive':['MOTOR OIL','OIL FILTER','AIR FILTER','BATTERY','WIPER BLADE','ANTIFREEZE','COOLANT','BRAKE PAD','BRAKE FLUID','FUEL ADDITIVE','AUTO PART'],'Hardware':['HARDWARE','BOLT','SCREW','NAIL','FASTENER','DRILL BIT','LUMBER','PIPE','FITTING','PLUMB','ELECTRIC','CHAIN','LOCK','HINGE','ROPE','CAULK','FILTER','MERV','PLEATED','HVAC','FURNACE'],'Sporting Goods':['SPORT','HUNT','FISH','ARCHERY','AMMO','CAMP','HIKE','BOW','REEL','TACKLE','DECOY','BLIND','TARGET'],'Apparel':['APPAREL','BOOT','SHOE','GLOVE','SHIRT','JACKET','HAT','CAP','PANT','SOCK','CLOTH','FLEECE','VEST','OVERALL'],'Tools':['WRENCH','SAW','HAMMER','GRINDER','TORQUE','SOCKET SET','DRIVER BIT','PLIER','SANDER','DRILL PRESS']};
   Object.keys(catKws).forEach(function(cat){var sc=catKws[cat].filter(function(k){return tu.indexOf(k)>=0;}).length;if(sc>catScore){catScore=sc;category=cat;}});
 
   // ── NOTES ─────────────────────────────────────────────────────────────────
