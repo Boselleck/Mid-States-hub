@@ -658,13 +658,17 @@ function handleFiles(files){
   G('drop-zone').style.display='none';G('proc-bar').style.display='block';G('queue-wrap').style.display='none';
   importQueue=[];var done=0;
   pdfs.forEach(function(file){
-    // Use ArrayBuffer to properly extract text from PDF binary streams
     var reader=new FileReader();
     reader.onload=function(e){
-      var text=extractPDFText(e.target.result);
-      importQueue.push({text:text,fname:file.name,ext:parsePO(text,file.name)});
-      done++;G('proc-sub').textContent=done+' of '+pdfs.length+' processed';
-      if(done===pdfs.length)showQueue();
+      // extractPDFText returns a promise (async decompression)
+      Promise.resolve(extractPDFText(e.target.result)).then(function(text){
+        importQueue.push({text:text,fname:file.name,ext:parsePO(text,file.name)});
+        done++;G('proc-sub').textContent=done+' of '+pdfs.length+' processed';
+        if(done===pdfs.length)showQueue();
+      }).catch(function(){
+        importQueue.push({text:'',fname:file.name,ext:parsePO('',file.name)});
+        done++;if(done===pdfs.length)showQueue();
+      });
     };
     reader.onerror=function(){
       importQueue.push({text:'',fname:file.name,ext:parsePO('',file.name)});
@@ -677,56 +681,124 @@ function handleFiles(files){
 
 // Extract readable text from PDF binary using stream parsing
 function extractPDFText(arrayBuffer){
+  // Return a promise — decompression is async
+  return extractPDFTextAsync(arrayBuffer);
+}
+
+async function extractPDFTextAsync(arrayBuffer){
   try {
     var bytes=new Uint8Array(arrayBuffer);
     var binary='';
     var chunkSize=8192;
     for(var i=0;i<bytes.length;i+=chunkSize){
-      var chunk=bytes.subarray(i,Math.min(i+chunkSize,bytes.length));
-      binary+=String.fromCharCode.apply(null,chunk);
+      binary+=String.fromCharCode.apply(null,bytes.subarray(i,Math.min(i+chunkSize,bytes.length)));
     }
-    var text='';
 
-    // Strategy 1: Extract ALL Tj operators, then smart-join single-char sequences
-    // Some PDFs (Big R, etc.) output each character as its own (X) Tj call
-    var allTjRaw=binary.match(/\(([^)]{0,200})\)\s*Tj/g)||[];
-    var tjValues=allTjRaw.map(function(m){var t=m.match(/\(([^)]*)\)/);return t?decodeText(t[1]):'';}).filter(function(v){return v.length>0;});
-    // Concatenate runs of single characters into words/lines
-    var idx=0;
-    while(idx<tjValues.length){
-      var v=tjValues[idx];
-      if(v.length===1){
-        // Accumulate single chars until we hit a multi-char token or end
-        var word=v;
-        while(idx+1<tjValues.length&&tjValues[idx+1].length<=2){
-          idx++;
-          word+=tjValues[idx];
-        }
-        text+=word+'\n';
-      } else {
-        text+=v+'\n';
+    var allText='';
+
+    // Step 1: Try to decompress FlateDecode streams using DecompressionStream API
+    // Find all stream offsets in the raw bytes
+    var streamMarker=new TextEncoder().encode('stream\r\n');
+    var endMarker=new TextEncoder().encode('endstream');
+    var streamOffsets=[];
+    for(var si=0;si<bytes.length-8;si++){
+      if(bytes[si]===115&&bytes[si+1]===116&&bytes[si+2]===114&&bytes[si+3]===101&&bytes[si+4]===97&&bytes[si+5]===109&&bytes[si+6]===13&&bytes[si+7]===10){
+        streamOffsets.push(si+8);
       }
-      idx++;
     }
 
-    // Strategy 2: TJ array format
-    var tjArrMatches=binary.match(/\[([^\]]{0,500})\]\s*TJ/g)||[];
-    tjArrMatches.forEach(function(m){
-      var parts=m.match(/\(([^)]*)\)/g)||[];
-      parts.forEach(function(p){var t=p.match(/\(([^)]*)\)/);if(t&&t[1].trim())text+=decodeText(t[1]);});
-      text+='\n';
+    for(var oi=0;oi<Math.min(streamOffsets.length,20);oi++){
+      var start=streamOffsets[oi];
+      // Find endstream
+      var end=-1;
+      for(var ei=start;ei<Math.min(start+200000,bytes.length-9);ei++){
+        if(bytes[ei]===101&&bytes[ei+1]===110&&bytes[ei+2]===100&&bytes[ei+3]===115&&bytes[ei+4]===116&&bytes[ei+5]===114&&bytes[ei+6]===101&&bytes[ei+7]===97&&bytes[ei+8]===109){
+          end=ei; break;
+        }
+      }
+      if(end<0||end<=start)continue;
+      var streamData=bytes.slice(start,end);
+
+      try {
+        // Use DecompressionStream to inflate zlib/deflate data
+        var ds=new DecompressionStream('deflate-raw');
+        var writer=ds.writable.getWriter();
+        var reader=ds.readable.getReader();
+        writer.write(streamData);
+        writer.close();
+        var chunks=[];
+        while(true){
+          var result=await reader.read();
+          if(result.done)break;
+          chunks.push(result.value);
+        }
+        var total=chunks.reduce(function(s,c){return s+c.length;},0);
+        var merged=new Uint8Array(total);
+        var offset=0;
+        chunks.forEach(function(c){merged.set(c,offset);offset+=c.length;});
+        var decompStr=new TextDecoder('latin1').decode(merged);
+
+        // Extract Tj text from decompressed stream
+        var tjs=re_findAll(/\(([^)]{0,200})\)\s*Tj/g,decompStr);
+        var tjValues=tjs.map(function(m){return decodeText(m[1]);}).filter(function(v){return v.trim().length>0;});
+
+        // Smart-join single char sequences
+        var idx2=0;
+        while(idx2<tjValues.length){
+          var v=tjValues[idx2];
+          if(v.length<=2){
+            var word=v;
+            while(idx2+1<tjValues.length&&tjValues[idx2+1].length<=2){idx2++;word+=tjValues[idx2];}
+            allText+=word+'\n';
+          } else {
+            allText+=v+'\n';
+          }
+          idx2++;
+        }
+      } catch(e){
+        // DecompressionStream failed — try as uncompressed
+        var rawStr=new TextDecoder('latin1').decode(streamData);
+        var rtjs=re_findAll(/\(([^)]{0,200})\)\s*Tj/g,rawStr);
+        rtjs.forEach(function(m){if(m[1].trim())allText+=decodeText(m[1])+'\n';});
+      }
+    }
+
+    // Step 2: Also scan raw binary for any uncompressed Tj (Bomgaars style)
+    var rawTjs=re_findAll(/\(([^)]{0,200})\)\s*Tj/g,binary);
+    var rawValues=rawTjs.map(function(m){return decodeText(m[1]);}).filter(function(v){return v.trim().length>0;});
+    var idx3=0;
+    while(idx3<rawValues.length){
+      var rv=rawValues[idx3];
+      if(rv.length<=2){
+        var rw=rv;
+        while(idx3+1<rawValues.length&&rawValues[idx3+1].length<=2){idx3++;rw+=rawValues[idx3];}
+        allText+=rw+'\n';
+      } else { allText+=rv+'\n'; }
+      idx3++;
+    }
+
+    // Step 3: TJ arrays
+    re_findAll(/\[([^\]]{0,500})\]\s*TJ/g,binary).forEach(function(m){
+      re_findAll(/\(([^)]*)\)/g,m[1]).forEach(function(p){if(p[1].trim())allText+=decodeText(p[1]);});
+      allText+='\n';
     });
 
-    // Strategy 3: ASCII fallback for minimal-text PDFs
-    if(text.trim().length<50){
-      var asciiRuns=binary.match(/[\x20-\x7E]{8,}/g)||[];
-      asciiRuns.forEach(function(run){
-        if(/[A-Za-z]{3,}/.test(run)&&run.indexOf('stream')<0&&run.indexOf('endstream')<0)text+=run+'\n';
+    // Step 4: ASCII fallback
+    if(allText.trim().length<50){
+      (binary.match(/[\x20-\x7E]{8,}/g)||[]).forEach(function(run){
+        if(/[A-Za-z]{3,}/.test(run)&&!run.includes('stream')&&!run.includes('endstream'))allText+=run+'\n';
       });
     }
 
-    return text.length>20?text:'';
+    return allText.length>20?allText:'';
   } catch(err){return '';}
+}
+
+function re_findAll(rx,str){
+  var results=[],m;
+  var r=new RegExp(rx.source,rx.flags||'g');
+  while((m=r.exec(str))!==null)results.push(m);
+  return results;
 }
 
 function decodeText(s){
