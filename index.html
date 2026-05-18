@@ -492,7 +492,8 @@ var VENDORS=[
 {num:"1002222",n:"U-C Coatings LLC",contact:"Richard Ahlstrom",mgr:"Ed Ensminger",status:"Active",plStatus:"Current",plEnd:"2027-01-01",coiStatus:"Current",coiEnd:"2026-11-26"},
 {num:"952925",n:"Wilmar Corporation",contact:"Chris Favro",mgr:"Ed Ensminger",status:"Active",plStatus:"Current",plEnd:"2026-09-01",coiStatus:"Current",coiEnd:"2026-03-31"},
 {num:"956017",n:"Winston Products LLC",contact:"Mark Moore",mgr:"Sheila Toombs",status:"Active",plStatus:"Current",plEnd:"2026-07-01",coiStatus:"Current",coiEnd:"2026-12-31"},
-{num:"CS001",n:"Creekside Soils",contact:"",mgr:"",status:"Active",plStatus:"Current",plEnd:"2027-01-01",coiStatus:"Current",coiEnd:"2027-01-01"}
+{num:"CS001",n:"Creekside Soils",contact:"",mgr:"",status:"Active",plStatus:"Current",plEnd:"2027-01-01",coiStatus:"Current",coiEnd:"2027-01-01"},
+{num:"MH001",n:"Mann and Hummel",contact:"",mgr:"",status:"Active",plStatus:"Current",plEnd:"2027-01-01",coiStatus:"Current",coiEnd:"2027-01-01"}
 ];
 
 // ── STORAGE ───────────────────────────────────────────────────────────────────
@@ -668,7 +669,8 @@ function handleFiles(files){
         done++;G('proc-sub').textContent=done+' of '+pdfs.length+' processed';
         if(done===pdfs.length)showQueue();
       }).catch(function(err){
-        console.warn('Claude API failed, falling back to binary parse:',err);
+        console.warn('Claude API failed:',err);
+        G('proc-sub').textContent='AI read failed — using backup parser...';
         // Fallback: try binary parse
         var fr2=new FileReader();
         fr2.onload=function(e2){
