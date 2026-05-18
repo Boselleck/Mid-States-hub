@@ -657,26 +657,95 @@ function handleFiles(files){
   if(!pdfs.length){alert('Please select PDF files.');return;}
   G('drop-zone').style.display='none';G('proc-bar').style.display='block';G('queue-wrap').style.display='none';
   importQueue=[];var done=0;
+  G('proc-txt').textContent='Reading '+pdfs.length+' PDF'+(pdfs.length>1?'s':'')+'...';
   pdfs.forEach(function(file){
+    // Read as base64 for Claude API
     var reader=new FileReader();
     reader.onload=function(e){
-      // extractPDFText returns a promise (async decompression)
-      Promise.resolve(extractPDFText(e.target.result)).then(function(text){
-        importQueue.push({text:text,fname:file.name,ext:parsePO(text,file.name)});
+      var b64=e.target.result.split(',')[1];
+      extractWithClaude(b64,file.name).then(function(result){
+        importQueue.push({text:'',fname:file.name,ext:result});
         done++;G('proc-sub').textContent=done+' of '+pdfs.length+' processed';
         if(done===pdfs.length)showQueue();
-      }).catch(function(){
-        importQueue.push({text:'',fname:file.name,ext:parsePO('',file.name)});
-        done++;if(done===pdfs.length)showQueue();
+      }).catch(function(err){
+        console.warn('Claude API failed, falling back to binary parse:',err);
+        // Fallback: try binary parse
+        var fr2=new FileReader();
+        fr2.onload=function(e2){
+          extractPDFTextAsync(e2.target.result).then(function(text){
+            importQueue.push({text:text,fname:file.name,ext:parsePO(text,file.name)});
+            done++;G('proc-sub').textContent=done+' of '+pdfs.length+' processed';
+            if(done===pdfs.length)showQueue();
+          });
+        };
+        fr2.readAsArrayBuffer(file);
       });
     };
-    reader.onerror=function(){
-      importQueue.push({text:'',fname:file.name,ext:parsePO('',file.name)});
-      done++;if(done===pdfs.length)showQueue();
-    };
-    reader.readAsArrayBuffer(file);
+    reader.readAsDataURL(file);
   });
-  G('proc-txt').textContent='Reading '+pdfs.length+' PDF'+(pdfs.length>1?'s':'')+'...';
+}
+
+async function extractWithClaude(base64PDF, filename){
+  G('proc-sub').textContent='Sending to Claude AI...';
+  var memberNames=MEMBERS.map(function(m){return m.n;}).join(', ');
+  var vendorNames=VENDORS.map(function(v){return v.n;}).join(', ');
+
+  var prompt='You are a purchase order data extractor. Extract the following fields from this PO PDF and return ONLY a JSON object with no other text:\n\n'
+    +'{\n'
+    +'  "poNumber": "the PO number",\n'
+    +'  "date": "order date in YYYY-MM-DD format",\n'
+    +'  "shipDate": "ship/arrive by/due date in YYYY-MM-DD format",\n'
+    +'  "value": "total dollar value as a number (no $ sign)",\n'
+    +'  "member": "best match from this list: '+memberNames+'",\n'
+    +'  "vendor": "best match from this list: '+vendorNames+'",\n'
+    +'  "category": "one of: Lawn & Garden, Automotive, Hardware, Sporting Goods, Apparel, Tools, Other",\n'
+    +'  "notes": "payment terms and any special instructions (brief)"\n'
+    +'}\n\n'
+    +'If a field cannot be found, use empty string "". For member and vendor, pick the closest match from the lists provided. Return ONLY the JSON object.';
+
+  var response=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      model:'claude-sonnet-4-20250514',
+      max_tokens:1000,
+      messages:[{
+        role:'user',
+        content:[
+          {type:'document',source:{type:'base64',media_type:'application/pdf',data:base64PDF}},
+          {type:'text',text:prompt}
+        ]
+      }]
+    })
+  });
+
+  if(!response.ok)throw new Error('API error: '+response.status);
+  var data=await response.json();
+  var text=data.content.map(function(c){return c.text||'';}).join('');
+  // Strip any markdown fences
+  text=text.replace(/```json|```/g,'').trim();
+  var parsed=JSON.parse(text);
+
+  // Normalize date fields
+  function fixDate(d){
+    if(!d)return'';
+    // Already ISO
+    if(/^\d{4}-\d{2}-\d{2}$/.test(d))return d;
+    // Try parsing
+    try{var dt=new Date(d);return isNaN(dt)?'':dt.toISOString().slice(0,10);}catch(e){return'';}
+  }
+
+  return{
+    poNumber:parsed.poNumber||'',
+    date:fixDate(parsed.date),
+    shipDate:fixDate(parsed.shipDate),
+    value:parsed.value?String(parseFloat(String(parsed.value).replace(/[^0-9.]/g,''))):'',
+    member:parsed.member||'',
+    vendor:parsed.vendor||'',
+    category:parsed.category||'Other',
+    notes:parsed.notes||'',
+    confidence:'high'
+  };
 }
 
 // Extract readable text from PDF binary using stream parsing
